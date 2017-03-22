@@ -9,6 +9,7 @@
 
         public static class Node
         {
+            public const string ConfigFilename = "DistNode.cfg";
             public static class Worker
             {
                 public const string ProcessFilename = "cmd.exe";
