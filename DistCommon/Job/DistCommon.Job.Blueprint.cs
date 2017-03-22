@@ -4,13 +4,11 @@
     {
         public readonly int ID;
         public readonly string Command;
-        public readonly string Arguments;
         
-        public Blueprint(int id, string command, string arguments)
+        public Blueprint(int id, string command)
         {
             this.ID = id;
             this.Command = command;
-            this.Arguments = arguments;
         }
     }
 }
