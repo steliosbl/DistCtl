@@ -4,14 +4,14 @@
 
     internal sealed class Worker
     {
-        private DistCommon.Job.Blueprint Job;
-        private System.Diagnostics.Process Process;
-        private System.Threading.Timer Timer;
+        private DistCommon.Job.Blueprint job;
+        private System.Diagnostics.Process process;
+        private System.Threading.Timer timer;
 
         public Worker(DistCommon.Job.Blueprint job)
         {
-            this.Job = job;
-            this.Process = new System.Diagnostics.Process();
+            this.job = job;
+            this.process = new System.Diagnostics.Process();
             this.Awake = false;
         }
 
@@ -23,15 +23,15 @@
             var startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.CreateNoWindow = true;
             startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
-            startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.Job.Command;
-            this.Timer = new System.Threading.Timer(CheckWorking, null, DistCommon.Constants.Node.Worker.TimerInitialWait, DistCommon.Constants.Node.Worker.TimerPeriod);
-            this.Process.StartInfo = startInfo;
-            this.Process.Start();
+            startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
+            this.timer = new System.Threading.Timer(this.CheckWorking, null, DistCommon.Constants.Node.Worker.TimerInitialWait, DistCommon.Constants.Node.Worker.TimerPeriod);
+            this.process.StartInfo = startInfo;
+            this.process.Start();
         }
 
         private void CheckWorking(object state)
         {
-            this.Awake = !this.Process.HasExited;
+            this.Awake = !this.process.HasExited;
         }
     }
 }
