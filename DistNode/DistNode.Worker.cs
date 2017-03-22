@@ -7,31 +7,50 @@
         private DistCommon.Job.Blueprint job;
         private System.Diagnostics.Process process;
         private System.Threading.Timer timer;
+        private bool supressExitEvent;
 
-        public Worker(DistCommon.Job.Blueprint job)
+        public Worker(DistCommon.Job.Blueprint job, ProcessExitedHandler exitedHandler)
         {
             this.job = job;
             this.process = new System.Diagnostics.Process();
             this.Awake = false;
+            this.ProcessExited += exitedHandler;
+            this.supressExitEvent = true;
         }
+
+        public delegate void ProcessExitedHandler(int id);
+
+        public event ProcessExitedHandler ProcessExited;
 
         public bool Awake { get; private set; }
 
-        public void BeginWork()
+        public void StartWork()
         {
+            this.supressExitEvent = false;
             this.Awake = true;
             var startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.CreateNoWindow = true;
             startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
             startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
-            this.timer = new System.Threading.Timer(this.CheckWorking, null, DistCommon.Constants.Node.Worker.TimerInitialWait, DistCommon.Constants.Node.Worker.TimerPeriod);
             this.process.StartInfo = startInfo;
+            this.process.Exited += this.OnProcessExited;
             this.process.Start();
         }
 
-        private void CheckWorking(object state)
+        public void StopWork()
         {
-            this.Awake = !this.process.HasExited;
+            this.supressExitEvent = true;
+            this.process.Kill();
+            this.Awake = false;
+        }
+
+        private void OnProcessExited(object sender, EventArgs e)
+        {
+            if (this.ProcessExited != null && !this.supressExitEvent)
+            {
+                this.Awake = false;
+                this.ProcessExited(this.job.ID);
+            }
         }
     }
 }
