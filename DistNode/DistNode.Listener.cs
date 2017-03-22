@@ -1,4 +1,4 @@
-﻿namespace DistributionNode
+﻿namespace DistNode
 {
     using System;
     using System.Net;
