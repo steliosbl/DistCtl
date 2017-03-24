@@ -10,6 +10,7 @@
         {
             public const string ConfigFilename = "DistNode.cfg";
             public const string LogFilename = "DistNode.log";
+
             public static class Worker
             {
                 public const string ProcessFilename = "cmd.exe";
