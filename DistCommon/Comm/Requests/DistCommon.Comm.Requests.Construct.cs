@@ -2,11 +2,11 @@
 {
     public sealed class Construct : Base
     {
-        public Construct(DistCommon.Schematic.Node schematic) : base()
+        public Construct(DistCommon.Schema.Node schematic) : base()
         {
             this.Schematic = schematic;
         }
 
-        public DistCommon.Schematic.Node Schematic { get; private set; }
+        public DistCommon.Schema.Node Schematic { get; private set; }
     }
 }

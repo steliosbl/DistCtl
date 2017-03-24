@@ -2,11 +2,11 @@
 {
     public sealed class Assign : Base
     {
-        public Assign(DistributedJob.Blueprint blueprint) : base()
+        public Assign(Job.Blueprint blueprint) : base()
         {
             this.Blueprint = blueprint;
         }
 
-        public DistributedJob.Blueprint Blueprint { get; private set; }
+        public Job.Blueprint Blueprint { get; private set; }
     }
 }
