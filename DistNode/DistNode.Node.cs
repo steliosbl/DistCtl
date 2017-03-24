@@ -19,7 +19,7 @@
         private Logger logger;
         private List<Comm.Reports.Base> reports;
 
-        public Node(string configFilename = DistCommon.Constants.Node.ConfigFilename)
+        public Node(string configFilename = Constants.Node.ConfigFilename)
         {
             string[] dependencies = { configFilename };
             if (new DepMgr(dependencies).FindMissing().Count != 0)
