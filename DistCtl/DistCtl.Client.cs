@@ -7,16 +7,18 @@
 
     internal sealed class Client
     {
-        private IPEndPoint remoteEP;
+        private IPAddress address;
+        private int port;
         private int timeout;
 
-        public Client(IPAddress address, int port, EndPointUnreachableHandler unreachableHandler)
+        public Client(IPEndPoint address, EndPointUnreachableHandler unreachableHandler)
         {
-            this.remoteEP = new IPEndPoint(address, port);
+            this.address = address.Address;
+            this.port = address.Port;
             this.EndPointUnreachable += unreachableHandler;
         }
 
-        public delegate void EndPointUnreachableHandler(EventArgs e);
+        public delegate void EndPointUnreachableHandler();
 
         public event EndPointUnreachableHandler EndPointUnreachable;
 
@@ -26,13 +28,12 @@
             {
                 using (var client = new TcpClient())
                 {
-                    var task = client.ConnectAsync(this.remoteEP.Address, this.remoteEP.Port);
+                    var task = client.ConnectAsync(this.address, this.port);
                     if (await Task.WhenAny(task, Task.Delay(this.timeout)) == task)
                     {
                         await task;
                         using (var stream = client.GetStream())
                         {
-
                             var data = System.Text.Encoding.ASCII.GetBytes(message);
                             stream.Write(data, 0, data.Length);
 
@@ -49,16 +50,16 @@
             }
             catch (SocketException)
             {
-                this.OnEndPointUnreachable(EventArgs.Empty);
+                this.OnEndPointUnreachable();
                 return null;
             }
         }
 
-        private void OnEndPointUnreachable(EventArgs e)
+        private void OnEndPointUnreachable()
         {
             if (this.EndPointUnreachable != null)
             {
-                this.EndPointUnreachable(e);
+                this.EndPointUnreachable();
             }
         }
     }

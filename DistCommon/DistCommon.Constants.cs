@@ -30,6 +30,6 @@
 
     public static class Ctl
     {
-        public const int ReportTries = 3;   
+        public const int RequestAttempts = 3;   
     }
 }
