@@ -54,7 +54,7 @@
                 }
                 catch (Exception e)
                 {
-                    if (!this.config.LiveErrors)
+                    if (!this.config.EnableLiveErrors)
                     {
                         this.logger.Log(e.StackTrace, 3);
                         Environment.Exit(1);

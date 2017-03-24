@@ -6,7 +6,6 @@
     {
         private DistCommon.Job.Blueprint job;
         private System.Diagnostics.Process process;
-        private System.Threading.Timer timer;
         private bool supressExitEvent;
 
         public Worker(DistCommon.Job.Blueprint job, ProcessExitedHandler exitedHandler)
