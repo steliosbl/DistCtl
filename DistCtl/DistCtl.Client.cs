@@ -11,16 +11,11 @@
         private int port;
         private int timeout;
 
-        public Client(IPEndPoint address, EndPointUnreachableHandler unreachableHandler)
+        public Client(IPEndPoint address)
         {
             this.address = address.Address;
             this.port = address.Port;
-            this.EndPointUnreachable += unreachableHandler;
         }
-
-        public delegate void EndPointUnreachableHandler();
-
-        public event EndPointUnreachableHandler EndPointUnreachable;
 
         public async Task<string> Send(string message)
         {
@@ -50,16 +45,7 @@
             }
             catch (SocketException)
             {
-                this.OnEndPointUnreachable();
                 return null;
-            }
-        }
-
-        private void OnEndPointUnreachable()
-        {
-            if (this.EndPointUnreachable != null)
-            {
-                this.EndPointUnreachable();
             }
         }
     }
