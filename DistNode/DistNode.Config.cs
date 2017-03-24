@@ -3,13 +3,13 @@
     internal sealed class Config
     {
         public readonly int Port;
-        public readonly bool LiveErrors;
+        public readonly bool EnableLiveErrors;
 
         [Newtonsoft.Json.JsonConstructor]
-        public Config(int port, bool liveErrors)
+        public Config(int port, bool enableLiveErrors)
         {
             this.Port = port;
-            this.LiveErrors = liveErrors;
+            this.EnableLiveErrors = enableLiveErrors;
         }
     }
 }
