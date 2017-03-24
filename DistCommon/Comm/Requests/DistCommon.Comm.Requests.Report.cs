@@ -1,8 +1,8 @@
 ﻿namespace DistCommon.Comm.Requests
 {
-    public sealed class Status : Base
+    public sealed class Report : Base
     {
-        public Status() : base()
+        public Report() : base()
         {
         }
     }
