@@ -27,4 +27,9 @@
             public const int NotConstructed = 4;
             public static string[] Message = { "Fail", "Success", "Not Found", "Invalid", "Not Constructed"};
         }
+
+    public static class Ctl
+    {
+        public const int ReportTries = 3;   
+    }
 }

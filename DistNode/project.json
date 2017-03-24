@@ -3,10 +3,8 @@
 
   "dependencies": {
     "DistCommon": "1.0.0-*",
-    "DistJob": "1.0.0-*",
     "NETStandard.Library": "1.6.0",
     "Newtonsoft.Json": "9.0.1",
-    "System.Diagnostics.Process": "4.3.0",
     "System.Threading": "4.3.0"
   },
 
