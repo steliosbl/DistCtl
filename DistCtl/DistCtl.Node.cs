@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using DistCommon.Constants;
     using Newtonsoft.Json;
     using Comm = DistCommon.Comm;
 
@@ -12,23 +13,25 @@
         private Client client;
         private Timer reportTimer;
         private int retryCounter;
+        private int reportDelay;
 
         public Node(DistCommon.Schema.Node schematic, int reportDelay, LostNodeHandler lostNodeHandler, RecoveredNodeHandler recoveredNodeHandler, WorkerExitedHandler workerExitedHandler)
         {
+            this.Reachable = false;
+            this.reportDelay = reportDelay;
             this.Schematic = schematic;
             this.retryCounter = 0;
             this.LostNode += lostNodeHandler;
             this.RecoveredNode += recoveredNodeHandler;
             this.WorkerExited += workerExitedHandler;
             this.client = new Client(this.Schematic.Address);
-            this.reportTimer = new Timer(this.CheckReports, null, reportDelay, reportDelay);
         }
 
         public delegate void LostNodeHandler(int id);
 
         public delegate void RecoveredNodeHandler(int id);
 
-        public delegate void WorkerExitedHandler(int nodeID, int jobID);
+        public delegate void WorkerExitedHandler(int jobID);
 
         public event LostNodeHandler LostNode;
 
@@ -36,42 +39,58 @@
 
         public event WorkerExitedHandler WorkerExited;
 
-        public bool Initialized { get; private set; }
+        public bool Reachable { get; private set; }
 
         public async Task<int> Assign(Job job)
         {
             var res = await this.SendRequest(new Comm.Requests.Assign(job.Blueprint));
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
         }
 
         public async Task<int> Construct()
         {
             var res = await this.SendRequest(new Comm.Requests.Construct(this.Schematic));
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
         }
 
         public async Task<int> Remove(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Remove(id));
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
         }
 
         public async Task<int> Reset()
         {
             var res = await this.SendRequest(new Comm.Requests.Reset());
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
         }
 
         public async Task<int> Sleep(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Sleep(id));
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
         }
 
         public async Task<int> Wake(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Wake(id));
-            return res != null ? res.ResponseCode : -1;
+            return res != null ? res.ResponseCode : Results.Unreachable;
+        }
+
+        public async Task<bool> Test()
+        {
+            var res = await this.SendRequest(new Comm.Requests.Base());
+            return res != null ? res.ResponseCode == Results.Success : false;
+        }
+
+        public void StartReportTimer()
+        {
+            this.reportTimer = new Timer(this.CheckReports, null, this.reportDelay, this.reportDelay);
+        }
+
+        public void StopReportTimer()
+        {
+            this.reportTimer.Dispose();
         }
 
         private void CheckReports(object state)
@@ -79,7 +98,7 @@
             var reports = this.SendRequest<Comm.Responses.Report>(new Comm.Requests.Report()).Result;
             if (reports != null)
             {
-                this.Initialized = true;
+                this.Reachable = true;
                 if (reports.Reports.Count != 0)
                 {
                     foreach (var report in reports.Reports)
@@ -95,7 +114,7 @@
 
         private void HandleReport(Comm.Reports.WorkerExited report)
         {
-            this.WorkerExited(this.Schematic.ID, report.ID);
+            this.WorkerExited(report.ID);
         }
 
         private async Task<Comm.Responses.Base> SendRequest(Comm.Requests.Base request)
@@ -106,7 +125,7 @@
         private void SendFailedHandler()
         {
             this.retryCounter++;
-            if (this.retryCounter == DistCommon.Constants.Ctl.RequestAttempts)
+            if (this.retryCounter == Ctl.RequestAttempts)
             {
                 this.LostNode(this.Schematic.ID);
             }
