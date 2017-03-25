@@ -15,6 +15,8 @@
 
         public bool Awake { get; private set; }
 
+        public bool RestartAttempted { get; private set; }
+
         public DistCommon.Job.Blueprint Blueprint
         {
             get
@@ -36,6 +38,11 @@
         public void Wake()
         {
             this.Awake = true;
+        }
+
+        public void AttemptRestart()
+        {
+            this.RestartAttempted = true;
         }
     }
 }
