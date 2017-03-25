@@ -166,6 +166,7 @@
                 {
                     this.Remove(id);
                 }
+                this.reports.Clear();
 
                 return Constants.Results.Success;
             }
@@ -225,6 +226,11 @@
         private Comm.Responses.Base HandleRequest(Comm.Requests.Assign request)
         {
             return new Comm.Responses.Base(this.Assign(request.Blueprint));
+        }
+
+        private Comm.Responses.Base HandleRequest(Comm.Requests.Base request)
+        {
+            return new Comm.Responses.Base(Constants.Results.Success);
         }
 
         private Comm.Responses.Base HandleRequest(Comm.Requests.Construct request)
