@@ -81,7 +81,9 @@
             this.logger.Log("Loading schematic...");
             {
                 this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
-                this.LoadNodes();
+                var task = Task.Run(this.LoadNodes);
+                task.Wait();
+
                 if (this.nodes.Count == 0)
                 {
                     this.logger.Log("All nodes failed to initialize.", 3);
@@ -93,7 +95,8 @@
                 if (this.config.EnableJobPreload && preloadPossible)
                 {
                     this.logger.Log("Loading jobs...");
-                    this.LoadJobs();
+                    var task = Task.Run(this.LoadJobs);
+                    task.Wait();
                 }
                 else if (!preloadPossible)
                 {
@@ -108,6 +111,8 @@
                     this.DistributionChanged();
                 }
             }
+            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
 
             this.logger.Log("Startup completed");
         }
@@ -314,7 +319,7 @@
             return this.nodes.ContainsKey(id) ? this.jobs.Values.Where(job => job.NodeID == id).ToList() : null;
         }
 
-        private async void LoadJobs()
+        private async Task<bool> LoadJobs()
         {
             var jobs = JFI.GetObject<List<Job>>(this.config.PreLoadFilename);
             foreach (var job in jobs)
@@ -329,9 +334,11 @@
                     this.logger.Log(string.Format("Failed to load job ID: {0}", job.Blueprint.ID), 1);
                 }
             }
+
+            return true;
         }
 
-        private async void LoadNodes()
+        private async Task<bool> LoadNodes()
         {
             foreach (var node in this.schematic.Nodes)
             {
@@ -345,6 +352,8 @@
                     this.logger.Log(string.Format("Node ID: {0} failed to initialize", node.Key), 1);
                 }
             }
+
+            return true;
         }
 
         private void LostNodeHandler(int id)

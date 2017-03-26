@@ -54,6 +54,11 @@
                 }
                 catch (Exception e)
                 {
+                    if (e.GetType() == typeof(AggregateException))
+                    {
+                        e = e.InnerException;
+                    }
+
                     if (!this.config.EnableLiveErrors)
                     {
                         this.logger.Log(e.StackTrace, 3);
@@ -190,7 +195,7 @@
         private void WorkerExitedHandler(int id)
         {
             this.AddReport(new Comm.Reports.WorkerExited(id));
-            this.logger.Log(string.Format("Worker { {0} } exited unexpectedly", id), 2);
+            this.logger.Log(string.Format("Worker ID:{0} exited unexpectedly", id), 2);
         }
 
         private string ExecuteRequest(string requeststr)
@@ -205,14 +210,14 @@
                 bool supressLog = baseRequest.RequestType == typeof(Comm.Requests.Report);
                 if (!supressLog)
                 {
-                    this.logger.Log(string.Format("Received request { {0} } ", baseRequest.RequestType));
+                    this.logger.Log(string.Format("Received request [{0}]", baseRequest.RequestType));
                 }
 
                 Comm.Responses.Base result = this.HandleRequest(request);
 
                 if (!supressLog)
                 {
-                    this.logger.Log(string.Format("Operation finished with result { {0} }", Constants.Results.Message[result.ResponseCode]));
+                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Message[result.ResponseCode]));
                 }
     
                 return JsonConvert.SerializeObject(result);

@@ -243,3 +243,7 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/DistCtlRuntime/preload.json
+/DistCtlRuntime/schema.json
+/DistCtlRuntime/DistCtl.cfg
+/DistNodeRuntime/DistNode.cfg
