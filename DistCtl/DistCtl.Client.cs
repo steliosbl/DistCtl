@@ -11,10 +11,11 @@
         private int port;
         private int timeout;
 
-        public Client(IPEndPoint address)
+        public Client(IPEndPoint address, int timeout)
         {
             this.address = address.Address;
             this.port = address.Port;
+            this.timeout = timeout;
         }
 
         public async Task<string> Send(string message)

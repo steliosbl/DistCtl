@@ -15,7 +15,7 @@
         private int retryCounter;
         private int reportDelay;
 
-        public Node(DistCommon.Schema.Node schematic, int reportDelay, LostNodeHandler lostNodeHandler, RecoveredNodeHandler recoveredNodeHandler, WorkerExitedHandler workerExitedHandler)
+        public Node(DistCommon.Schema.Node schematic, int reportDelay, int timeout, LostNodeHandler lostNodeHandler, RecoveredNodeHandler recoveredNodeHandler, WorkerExitedHandler workerExitedHandler)
         {
             this.Reachable = false;
             this.reportDelay = reportDelay;
@@ -24,7 +24,7 @@
             this.LostNode += lostNodeHandler;
             this.RecoveredNode += recoveredNodeHandler;
             this.WorkerExited += workerExitedHandler;
-            this.client = new Client(this.Schematic.Address);
+            this.client = new Client(this.Schematic.Address, timeout);
         }
 
         public delegate void LostNodeHandler(int id);
@@ -131,6 +131,15 @@
             }
         }
 
+        private void SendSuccessfulHandler()
+        {
+            if (!this.Reachable)
+            {
+                this.Reachable = true;
+                this.RecoveredNode(this.Schematic.ID);
+            }
+        }
+
         private async Task<T> SendRequest<T>(Comm.Requests.Base request)
         {
             while (this.retryCounter < 3)
@@ -145,18 +154,22 @@
                     {
                         this.SendFailedHandler();
                     }
-                    else if (responseString != DistCommon.Constants.Comm.InvalidResponse)
-                    {
-                        this.retryCounter = 0;
-                        var baseResponse = JsonConvert.DeserializeObject<Comm.Responses.Base>(responseString);
-                        if (baseResponse.ResponseType == typeof(T))
-                        {
-                            return JsonConvert.DeserializeObject<T>(responseString);
-                        }
-                    }
                     else
                     {
-                        throw new JsonException();
+                        this.SendSuccessfulHandler();
+                        if (responseString != DistCommon.Constants.Comm.InvalidResponse)
+                        {
+                            this.retryCounter = 0;
+                            var baseResponse = JsonConvert.DeserializeObject<Comm.Responses.Base>(responseString);
+                            if (baseResponse.ResponseType == typeof(T))
+                            {
+                                return JsonConvert.DeserializeObject<T>(responseString);
+                            }
+                        }
+                        else
+                        {
+                            throw new JsonException();
+                        }
                     }
                 }
                 catch (JsonException)

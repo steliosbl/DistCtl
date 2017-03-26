@@ -14,10 +14,15 @@
         private ConcurrentDictionary<int, Job> jobs;
         private ConcurrentDictionary<int, Node> nodes;
         private DistCommon.Schema.Controller schematic;
-        private DistCommon.Logger logger;
+        private Logger logger;
 
         public Controller(string configFilename = Ctl.ConfigFilename, LivePrompt prompt = null)
         {
+            {
+                this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
+                this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
+            }
+
             {
                 string[] dependencies = { configFilename };
                 if (new DepMgr(dependencies).FindMissing().Count != 0)
@@ -162,7 +167,7 @@
         {
             if (!this.nodes.ContainsKey(schematic.ID))
             {
-                var node = new Node(schematic, this.config.UpdateDelay, this.LostNodeHandler, this.RecoveredNodeHandler, this.WorkerExitedHandler);
+                var node = new Node(schematic, this.config.UpdateDelay, this.config.TimeoutDuration, this.LostNodeHandler, this.RecoveredNodeHandler, this.WorkerExitedHandler);
                 if (await node.Test())
                 {
                     int constructionRes = await node.Construct();
