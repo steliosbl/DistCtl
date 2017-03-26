@@ -31,6 +31,8 @@
 
     public static class Ctl
     {
-        public const int RequestAttempts = 3;   
+        public const int RequestAttempts = 3;
+        public const string ConfigFilename = "DistCtl.cfg";
+        public const string LogFilename = "DistCtl.log";
     }
 }

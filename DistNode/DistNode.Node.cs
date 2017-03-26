@@ -166,6 +166,7 @@
                 {
                     this.Remove(id);
                 }
+
                 this.reports.Clear();
 
                 return Constants.Results.Success;

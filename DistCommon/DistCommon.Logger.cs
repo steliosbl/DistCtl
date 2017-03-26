@@ -6,7 +6,7 @@
     public class Logger
     {
         private readonly string filename;
-        private SayHandler Say;
+        private SayHandler say;
 
         public Logger(string filename) : this(filename, Console.WriteLine)
         {
@@ -16,7 +16,7 @@
         {
             this.filename = filename;
             this.Write('\n' + "----------------------------------" + '\n');
-            this.Say = sayHandler;
+            this.say = sayHandler;
         }
 
         public delegate void SayHandler(string msg);
@@ -28,7 +28,7 @@
             string message = "[" + DateTime.Now.ToString() + "] " + tags[severity] + " " + msg;
 
             this.Write(message + '\n');
-            this.Say(message);
+            this.say(message);
         }
 
         private void Write(string message)
