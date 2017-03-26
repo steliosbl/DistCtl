@@ -5,6 +5,9 @@
   },
 
   "dependencies": {
+    "DistCommon": "1.0.0-*",
+    "DistCtl": "1.0.0-*",
+    "DistCtlApi": "1.0.0-*",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.1"
