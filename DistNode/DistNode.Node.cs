@@ -52,21 +52,26 @@
                     var task = Task.Run(async () => { await this.listener.StartListener(); });
                     task.Wait();
                 }
-                catch (Exception e)
+
+                catch (AggregateException ex)
                 {
-                    if (e.GetType() == typeof(AggregateException))
-                    {
-                        e = e.InnerException;
-                    }
-
-                    if (!this.config.EnableLiveErrors)
-                    {
-                        this.logger.Log(e.StackTrace, 3);
-                        Environment.Exit(1);
-                    }
-
-                    throw;
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                 }
+                //catch (Exception e)
+                //{
+                //    if (e.GetType() == typeof(AggregateException))
+                //    {
+                //        e = e.InnerException;
+                //    }
+
+                //    if (!this.config.EnableLiveErrors)
+                //    {
+                //        this.logger.Log(e.StackTrace, 3);
+                //        Environment.Exit(1);
+                //    }
+
+                //    throw;
+                //}
             }
             else
             {
@@ -96,7 +101,10 @@
             {
                 if (this.workers.ContainsKey(id))
                 {
-                    this.workers[id].StopWork();
+                    if (this.workers[id].Awake)
+                    {
+                        this.workers[id].StopWork();
+                    }
                     this.workers.Remove(id);
                     return Constants.Results.Success;
                 }
@@ -165,14 +173,14 @@
         {
             if (this.constructed)
             {
-                this.schematic = null;
-                this.constructed = false;
                 foreach (int id in this.workers.Keys.ToList())
                 {
                     this.Remove(id);
                 }
 
                 this.reports.Clear();
+                this.schematic = null;
+                this.constructed = false;
 
                 return Constants.Results.Success;
             }
@@ -195,7 +203,7 @@
         private void WorkerExitedHandler(int id)
         {
             this.AddReport(new Comm.Reports.WorkerExited(id));
-            this.logger.Log(string.Format("Worker ID:{0} exited unexpectedly", id), 2);
+            this.logger.Log(string.Format("Worker { {0} } exited unexpectedly", id), 2);
         }
 
         private string ExecuteRequest(string requeststr)

@@ -25,22 +25,28 @@
 
         public void StartWork()
         {
-            this.supressExitEvent = false;
-            this.Awake = true;
-            var startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
-            startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
-            this.process.StartInfo = startInfo;
-            this.process.Exited += this.OnProcessExited;
-            this.process.Start();
+            if (!this.Awake)
+            {
+                this.supressExitEvent = false;
+                this.Awake = true;
+                var startInfo = new System.Diagnostics.ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
+                startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
+                this.process.StartInfo = startInfo;
+                this.process.Exited += this.OnProcessExited;
+                this.process.Start();
+            }
         }
 
         public void StopWork()
         {
-            this.supressExitEvent = true;
-            this.process.Kill();
-            this.Awake = false;
+            if (this.Awake)
+            {
+                this.supressExitEvent = true;
+                this.process.Kill();
+                this.Awake = false;
+            }
         }
 
         private void OnProcessExited(object sender, EventArgs e)
