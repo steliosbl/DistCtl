@@ -111,10 +111,8 @@
                     this.DistributionChanged();
                 }
             }
-            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
-
-
             this.logger.Log("Startup completed");
+            System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
         }
 
         private delegate void DistributionChangedHandler();
@@ -328,6 +326,18 @@
                 if (res == Results.Success)
                 {
                     this.logger.Log(string.Format("Loaded job ID: {0}", job.Blueprint.ID));
+                    if (job.Awake)
+                    {
+                        res = await this.WakeJob(job.Blueprint.ID, true);
+                        if (res == Results.Success)
+                        {
+                            this.logger.Log(string.Format("Awoke job ID: {0}", job.Blueprint.ID));
+                        }
+                        else
+                        {
+                            this.logger.Log(string.Format("Failed to wake job ID: {0}", job.Blueprint.ID), 1);
+                        }
+                    }
                 }
                 else
                 {
@@ -465,12 +475,12 @@
             return null;
         }
 
-        private async Task<int> WakeJob(int jobID)
+        private async Task<int> WakeJob(int jobID, bool isPreload = false)
         {
             if (this.jobs.ContainsKey(jobID))
             {
                 int nodeID = this.jobs[jobID].NodeID;
-                if (!this.jobs[jobID].Awake)
+                if (!this.jobs[jobID].Awake || isPreload)
                 {
                     int res = await this.nodes[nodeID].Wake(jobID);
                     if (res == Results.Success)
