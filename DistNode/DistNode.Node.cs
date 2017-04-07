@@ -9,7 +9,7 @@
     using Comm = DistCommon.Comm;
     using Constants = DistCommon.Constants;
 
-    public sealed class Node
+    public sealed class Node : IDisposable
     {
         private readonly Config config;
         private Listener listener;
@@ -19,7 +19,7 @@
         private Logger logger;
         private List<Comm.Reports.Base> reports;
 
-        public Node(string configFilename = Constants.Node.ConfigFilename)
+        public Node(string configFilename = Constants.Node.ConfigFilename) 
         {
             string[] dependencies = { configFilename };
             if (new DepMgr(dependencies).FindMissing().Count != 0)
@@ -36,13 +36,17 @@
                 throw new DistException("Configuration file invalid.");
             }
 
+            this.logger = new Logger(DistCommon.Constants.Node.LogFilename, Console.WriteLine);
+            this.constructed = false;
+            this.workers = new Dictionary<int, Worker>();
+            this.reports = new List<DistCommon.Comm.Reports.Base>();
+        }
+
+        public void Initialize()
+        {
             if (this.config != null)
             {
-                this.logger = new Logger(DistCommon.Constants.Node.LogFilename, Console.WriteLine);
                 this.logger.Log("Starting up node...");
-                this.constructed = false;
-                this.workers = new Dictionary<int, Worker>();
-                this.reports = new List<DistCommon.Comm.Reports.Base>();
                 try
                 {
                     this.logger.Log("Initializing listener...");
@@ -52,30 +56,34 @@
                     var task = Task.Run(async () => { await this.listener.StartListener(); });
                     task.Wait();
                 }
-
-                catch (AggregateException ex)
+                catch (Exception e)
                 {
-                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    this.Dispose();
+                    if (e.GetType() == typeof(AggregateException))
+                    {
+                        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                    }
+
+                    if (!this.config.EnableLiveErrors)
+                    {
+                        this.logger.Log(e.StackTrace, 3);
+                        Environment.Exit(1);
+                    }
+
+                    throw;
                 }
-                //catch (Exception e)
-                //{
-                //    if (e.GetType() == typeof(AggregateException))
-                //    {
-                //        e = e.InnerException;
-                //    }
-
-                //    if (!this.config.EnableLiveErrors)
-                //    {
-                //        this.logger.Log(e.StackTrace, 3);
-                //        Environment.Exit(1);
-                //    }
-
-                //    throw;
-                //}
             }
             else
             {
                 throw new DistException("Configuration file invalid.");
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var worker in this.workers)
+            {
+                this.Remove(worker.Key);
             }
         }
 
@@ -105,6 +113,7 @@
                     {
                         this.workers[id].StopWork();
                     }
+
                     this.workers.Remove(id);
                     return Constants.Results.Success;
                 }

@@ -5,15 +5,19 @@
         [System.STAThread]
         public static void Main(string[] args)
         {
+            DistNode.Node node;
             Newtonsoft.Json.JsonConvert.DefaultSettings = () => new DistCommon.Serialization.CustomSettings();
             if (args.Length == 0)
             {
-                new DistNode.Node();
+                node = new DistNode.Node();
             }
             else
             {
-                new DistNode.Node(args[0]);
+                node = new DistNode.Node(args[0]);
             }
+            
+            DistCommon.OnExit.Register(() => node.Dispose());
+            node.Initialize();
         }
     }
 }
