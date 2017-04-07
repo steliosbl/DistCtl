@@ -1,6 +1,6 @@
 ﻿namespace DistCtl
 {
-    internal sealed class Config
+    public sealed class Config
     {
         public readonly bool EnableLiveErrors;
         public readonly bool EnableLocalConsole;
