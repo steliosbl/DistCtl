@@ -11,13 +11,12 @@
         private string prompt = ">";
         private Thread loopThread;
 
-        public LivePrompt(InputReceivedHandler inputHandler)
+        public LivePrompt()
         {
             this.locker = new object();
             this.buffer = new List<char>();
             this.buffer.AddRange(this.prompt);
             Console.Write(new string(this.buffer.ToArray()));
-            this.InputReceived += inputHandler;
             this.loopThread = new Thread(() => this.MainLoop());
             this.loopThread.Start();
         }
@@ -39,7 +38,7 @@
                         this.buffer.Clear();
                         this.buffer.AddRange(this.prompt);
                         Console.Write(this.buffer.ToArray());
-                        this.InputReceived(this.buffer.ToString());
+                        this.OnInputReceived(this.buffer.ToString());
                     }
                 }
                 else
@@ -62,6 +61,19 @@
 
                 Console.WriteLine(msg);
                 Console.Write(new string(this.buffer.ToArray()));
+            }
+        }
+
+        public void AddInputHandler(InputReceivedHandler inputHandler)
+        {
+            this.InputReceived += inputHandler;
+        }
+
+        private void OnInputReceived(string input)
+        {
+            if (this.InputReceived != null)
+            {
+                this.InputReceived(input);
             }
         }
     }
