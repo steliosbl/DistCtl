@@ -24,20 +24,36 @@
             {
                 using (var client = new TcpClient())
                 {
-                    var task = client.ConnectAsync(this.address, this.port);
-                    if (await Task.WhenAny(task, Task.Delay(this.timeout)) == task)
+                    
+                    //var task = client.ConnectAsync(this.address, this.port);
+                    //if (await Task.WhenAny(task, Task.Delay(this.timeout)) == task)
+                    if (true)
                     {
-                        await task;
+                        await client.ConnectAsync(this.address, this.port);
                         using (var stream = client.GetStream())
                         {
+                            stream.ReadTimeout = this.timeout;
                             var data = System.Text.Encoding.ASCII.GetBytes(message);
-                            stream.Write(data, 0, data.Length);
+                            await stream.WriteAsync(data, 0, data.Length);
+                            //stream.Write(data, 0, data.Length);
 
-                            data = new byte[DistCommon.Constants.Comm.StreamSize];
-                            int bytes = stream.Read(data, 0, data.Length);
-                            string response = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                            byte[] resp = new byte[DistCommon.Constants.Comm.StreamSize];
+                            var memStream = new System.IO.MemoryStream();
+                            int bytesread = await stream.ReadAsync(resp, 0, resp.Length);
+                            while (bytesread > 0)
+                            {
+                                memStream.Write(resp, 0, bytesread);
+                                bytesread = await stream.ReadAsync(resp, 0, resp.Length);
+                            }
 
-                            return response;
+                            return System.Text.Encoding.ASCII.GetString(memStream.ToArray());
+
+                            //int bytes = 0;
+                            //data = new byte[DistCommon.Constants.Comm.StreamSize];
+                            //bytes = stream.Read(data, 0, data.Length);
+                            //string response = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+
+                            //return response;
                         }
                     }
 
