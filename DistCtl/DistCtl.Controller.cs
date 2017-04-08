@@ -129,7 +129,7 @@
                     if (missingFiles.Contains(this.config.SchematicFilename))
                     {
                         this.logger.Log("Schematic file not found.", 3);
-                        throw new DistException("Schematic file not found.");
+                        Environment.Exit(2);
                     }
 
                     if (missingFiles.Contains(this.config.PreLoadFilename))
@@ -147,7 +147,7 @@
                     if (this.nodes.Count == 0)
                     {
                         this.logger.Log("All nodes failed to initialize.", 3);
-                        throw new DistException("All nodes failed to initialize.");
+                        Environment.Exit(3);
                     }
                 }
 
@@ -172,10 +172,6 @@
                 }
 
                 this.logger.Log("Startup completed");
-                if (!this.config.EnableLocalConsole)
-                {
-                    System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
-                }
             }
             catch (Exception e)
             {
