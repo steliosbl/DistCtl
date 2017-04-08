@@ -112,67 +112,85 @@
         #region Init
         private async Task<bool> StartInit()
         {
-            this.logger.Log("Initializing controller...");
-            this.logger.Log("Loading dependencies...");
-            bool preloadPossible = true;
+            try
             {
-                var dependencies = new List<string>();
-                dependencies.Add(this.config.SchematicFilename);
-                if (this.config.EnableJobPreload)
+                this.logger.Log("Initializing controller...");
+                this.logger.Log("Loading dependencies...");
+                bool preloadPossible = true;
                 {
-                    dependencies.Add(this.config.PreLoadFilename);
+                    var dependencies = new List<string>();
+                    dependencies.Add(this.config.SchematicFilename);
+                    if (this.config.EnableJobPreload)
+                    {
+                        dependencies.Add(this.config.PreLoadFilename);
+                    }
+
+                    var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
+                    if (missingFiles.Contains(this.config.SchematicFilename))
+                    {
+                        this.logger.Log("Schematic file not found.", 3);
+                        throw new DistException("Schematic file not found.");
+                    }
+
+                    if (missingFiles.Contains(this.config.PreLoadFilename))
+                    {
+                        this.logger.Log("Pre-load file not found.", 1);
+                        preloadPossible = false;
+                    }
                 }
 
-                var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
-                if (missingFiles.Contains(this.config.SchematicFilename))
+                this.logger.Log("Loading schematic...");
                 {
-                    this.logger.Log("Schematic file not found.", 3);
-                    throw new DistException("Schematic file not found.");
+                    this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
+                    await this.LoadNodes();
+
+                    if (this.nodes.Count == 0)
+                    {
+                        this.logger.Log("All nodes failed to initialize.", 3);
+                        throw new DistException("All nodes failed to initialize.");
+                    }
                 }
 
-                if (missingFiles.Contains(this.config.PreLoadFilename))
                 {
-                    this.logger.Log("Pre-load file not found.", 1);
-                    preloadPossible = false;
+                    if (this.config.EnableJobPreload && preloadPossible)
+                    {
+                        this.logger.Log("Loading jobs...");
+                        await this.LoadJobs();
+                    }
+                    else if (!preloadPossible)
+                    {
+                        this.logger.Log("Skipping job pre-load");
+                    }
+                }
+
+                {
+                    if (this.config.EnableLoadBalancing)
+                    {
+                        this.DistributionChanged += this.BalanceWithMsg;
+                        this.DistributionChanged();
+                    }
+                }
+
+                this.logger.Log("Startup completed");
+                if (!this.config.EnableLocalConsole)
+                {
+                    System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
                 }
             }
-
-            this.logger.Log("Loading schematic...");
+            catch (Exception e)
             {
-                this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
-                await this.LoadNodes();
-
-                if (this.nodes.Count == 0)
+                if (e.GetType() == typeof(AggregateException))
                 {
-                    this.logger.Log("All nodes failed to initialize.", 3);
-                    throw new DistException("All nodes failed to initialize.");
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 }
-            }
 
-            {
-                if (this.config.EnableJobPreload && preloadPossible)
+                if (!this.config.EnableLiveErrors)
                 {
-                    this.logger.Log("Loading jobs...");
-                    await this.LoadJobs();
+                    this.logger.Log(e.StackTrace, 3);
+                    Environment.Exit(1);
                 }
-                else if (!preloadPossible)
-                {
-                    this.logger.Log("Skipping job pre-load");
-                }
-            }
 
-            {
-                if (this.config.EnableLoadBalancing)
-                {
-                    this.DistributionChanged += this.BalanceWithMsg;
-                    this.DistributionChanged();
-                }
-            }
-
-            this.logger.Log("Startup completed");
-            if (!this.config.EnableLocalConsole)
-            {
-                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                throw;
             }
 
             return true;
@@ -356,7 +374,7 @@
 
         private async Task<Tuple<int, int>> WakeJob(bool tuple, int jobID)
         {
-            return new Tuple<int, int>(jobID, await this.Wake(jobID));
+            return new Tuple<int, int>(jobID, await this.WakeJob(jobID, true));
         }
         #endregion
 
@@ -379,9 +397,9 @@
                 }
             }
 
-            var tasks2 = jobs.Where(job => job.Awake).Select(job => this.WakeJob(job.Blueprint.ID));
+            var tasks2 = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID));
             var tt2 = await Task.WhenAll(tasks2);
-            foreach (var res in tt)
+            foreach (var res in tt2)
             {
                 if (res.Item2 == Results.Success)
                 {
