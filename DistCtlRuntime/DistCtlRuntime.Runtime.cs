@@ -5,54 +5,72 @@
 
     internal sealed class Runtime
     {
-        DistCtl.Config config;
-        Logger.SayHandler sayHandler;
-        LivePrompt prompt;
-        DistCtl.Controller controller;
-        Logger tempLogger;
+        private DistCtl.Config config;
+        private Logger.SayHandler sayHandler;
+        private LivePrompt prompt;
+        private DistCtl.Controller controller;
+        private Logger tempLogger;
 
         public Runtime(string configFilename = DistCommon.Constants.Ctl.ConfigFilename)
         {
-            var tempLogger = new Logger(DistCommon.Constants.Ctl.LogFilename);
+            this.tempLogger = new Logger(DistCommon.Constants.Ctl.LogFilename);
 
             string[] dependencies = { configFilename };
             if (new DepMgr(dependencies).FindMissing().Count == 0)
             {
                 try
                 {
-                    config = JFI.GetObject<DistCtl.Config>(configFilename);
+                    this.config = JFI.GetObject<DistCtl.Config>(configFilename);
                 }
                 catch (Newtonsoft.Json.JsonException)
                 {
-                    tempLogger.Log("Configuration file invalid.", 3);
+                    this.tempLogger.Log("Configuration file invalid.", 3);
                     Environment.Exit(1);
                 }
             }
             else
             {
-                tempLogger.Log("Configuration file not found.", 3);
+                this.tempLogger.Log("Configuration file not found.", 3);
                 Environment.Exit(1);
             }
 
-            if (config.EnableLocalConsole)
+            if (this.config.EnableLocalConsole)
             {
-                prompt = new DistCommon.LivePrompt();
-                sayHandler = prompt.Say;
+                this.prompt = new DistCommon.LivePrompt();
+                this.sayHandler = this.prompt.Say;
             }
             else
             {
-                sayHandler = System.Console.WriteLine;
+                this.sayHandler = System.Console.WriteLine;
             }
 
-            controller = new DistCtl.Controller(config, sayHandler);
+            this.controller = new DistCtl.Controller(this.config, this.sayHandler);
         }
 
         public void Start()
         {
-            controller.Initialize();
-            if (!this.config.EnableLocalConsole)
+            try
             {
-                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                this.controller.Initialize();
+                if (!this.config.EnableLocalConsole)
+                {
+                    System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.GetType() == typeof(AggregateException))
+                {
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                }
+
+                if (!this.config.EnableLiveErrors)
+                {
+                    this.tempLogger.Log(e.StackTrace, 3);
+                    Environment.Exit(1);
+                }
+
+                throw;
             }
         }
     }

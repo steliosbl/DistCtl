@@ -112,82 +112,64 @@
         #region Init
         private async Task<bool> StartInit()
         {
-            try
+            this.logger.Log("Initializing controller...");
+            this.logger.Log("Loading dependencies...");
+            bool preloadPossible = true;
             {
-                this.logger.Log("Initializing controller...");
-                this.logger.Log("Loading dependencies...");
-                bool preloadPossible = true;
+                var dependencies = new List<string>();
+                dependencies.Add(this.config.SchematicFilename);
+                if (this.config.EnableJobPreload)
                 {
-                    var dependencies = new List<string>();
-                    dependencies.Add(this.config.SchematicFilename);
-                    if (this.config.EnableJobPreload)
-                    {
-                        dependencies.Add(this.config.PreLoadFilename);
-                    }
-
-                    var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
-                    if (missingFiles.Contains(this.config.SchematicFilename))
-                    {
-                        this.logger.Log("Schematic file not found.", 3);
-                        Environment.Exit(2);
-                    }
-
-                    if (missingFiles.Contains(this.config.PreLoadFilename))
-                    {
-                        this.logger.Log("Pre-load file not found.", 1);
-                        preloadPossible = false;
-                    }
+                    dependencies.Add(this.config.PreLoadFilename);
                 }
 
-                this.logger.Log("Loading schematic...");
+                var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
+                if (missingFiles.Contains(this.config.SchematicFilename))
                 {
-                    this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
-                    await this.LoadNodes();
-
-                    if (this.nodes.Count == 0)
-                    {
-                        this.logger.Log("All nodes failed to initialize.", 3);
-                        Environment.Exit(3);
-                    }
+                    this.logger.Log("Schematic file not found.", 3);
+                    Environment.Exit(2);
                 }
 
+                if (missingFiles.Contains(this.config.PreLoadFilename))
                 {
-                    if (this.config.EnableJobPreload && preloadPossible)
-                    {
-                        this.logger.Log("Loading jobs...");
-                        await this.LoadJobs();
-                    }
-                    else if (!preloadPossible)
-                    {
-                        this.logger.Log("Skipping job pre-load");
-                    }
+                    this.logger.Log("Pre-load file not found.", 1);
+                    preloadPossible = false;
                 }
-
-                {
-                    if (this.config.EnableLoadBalancing)
-                    {
-                        this.DistributionChanged += this.BalanceWithMsg;
-                        this.DistributionChanged();
-                    }
-                }
-
-                this.logger.Log("Startup completed");
             }
-            catch (Exception e)
+
+            this.logger.Log("Loading schematic...");
             {
-                if (e.GetType() == typeof(AggregateException))
-                {
-                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-                }
+                this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
+                await this.LoadNodes();
 
-                if (!this.config.EnableLiveErrors)
+                if (this.nodes.Count == 0)
                 {
-                    this.logger.Log(e.StackTrace, 3);
-                    Environment.Exit(1);
+                    this.logger.Log("All nodes failed to initialize.", 3);
+                    Environment.Exit(3);
                 }
-
-                throw;
             }
+
+            {
+                if (this.config.EnableJobPreload && preloadPossible)
+                {
+                    this.logger.Log("Loading jobs...");
+                    await this.LoadJobs();
+                }
+                else if (!preloadPossible)
+                {
+                    this.logger.Log("Skipping job pre-load");
+                }
+            }
+
+            {
+                if (this.config.EnableLoadBalancing)
+                {
+                    this.DistributionChanged += this.BalanceWithMsg;
+                    this.DistributionChanged();
+                }
+            }
+
+            this.logger.Log("Startup completed");
 
             return true;
         }
@@ -379,54 +361,54 @@
         private async Task<bool> LoadJobs()
         {
             var jobs = JFI.GetObject<List<Job>>(this.config.PreLoadFilename);
-            var tasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job));
-            var tt = await Task.WhenAll(tasks);
-            foreach (var res in tt)
-            {
-                if (res.Item2 == Results.Success)
-                {
-                    this.logger.Log(string.Format("Loaded job ID: {0}", res.Item1));
-                }
-                else
-                {
-                    this.logger.Log(string.Format("Failed to load job ID: {0}", res.Item1), 1);
-                }
-            }
-
-            var tasks2 = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID));
-            var tt2 = await Task.WhenAll(tasks2);
-            foreach (var res in tt2)
-            {
-                if (res.Item2 == Results.Success)
-                {
-                    this.logger.Log(string.Format("Awoke job ID: {0}", res.Item1));
-                }
-                else
-                {
-                    this.logger.Log(string.Format("Failed to wake job ID: {0}", res.Item1), 1);
-                }
-             }
-
+            var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
+            var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
+            var tasks = assignTasks.Concat(wakeTasks);
+            await Task.WhenAll(tasks);
             return true;
         }
 
         private async Task<bool> LoadNodes()
         {
-            var tasks = this.schematic.Nodes.Select(node => this.AddNode(node.Value, node.Key));
-            var tt = await Task.WhenAll(tasks);
-            foreach (var res in tt)
-            {
-                if (res.Item2 == Results.Success)
-                {
-                    this.logger.Log(string.Format("Node ID: {0} initialized successfully", res.Item1));
-                }
-                else
-                {
-                    this.logger.Log(string.Format("Node ID: {0} failed to initialize", res.Item1), 1);
-                }
-            }
-
+            var tasks = this.schematic.Nodes.Select(node => this.AddNode(node.Value, node.Key).ContinueWith((t) => this.NodeMsg(t.Result)));
+            await Task.WhenAll(tasks);
             return true;
+        }
+
+        private void NodeMsg(Tuple<int, int> res)
+        {
+            if (res.Item2 == Results.Success)
+            {
+                this.logger.Log(string.Format("Node ID: {0} initialized successfully", res.Item1));
+            }
+            else
+            {
+                this.logger.Log(string.Format("Node ID: {0} failed to initialize", res.Item1), 1);
+            }
+        }
+
+        private void JobAssignMsg(Tuple<int, int> res)
+        {
+            if (res.Item2 == Results.Success)
+            {
+                this.logger.Log(string.Format("Loaded job ID: {0}", res.Item1));
+            }
+            else
+            {
+                this.logger.Log(string.Format("Failed to load job ID: {0}", res.Item1), 1);
+            }
+        }
+
+        private void JobWakeMsg(Tuple<int, int> res)
+        {
+            if (res.Item2 == Results.Success)
+            {
+                this.logger.Log(string.Format("Awoke job ID: {0}", res.Item1));
+            }
+            else
+            {
+                this.logger.Log(string.Format("Failed to wake job ID: {0}", res.Item1), 1);
+            }
         }
         #endregion
 
