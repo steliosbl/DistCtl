@@ -361,9 +361,9 @@
         private async Task<bool> LoadJobs()
         {
             var jobs = JFI.GetObject<List<Job>>(this.config.PreLoadFilename);
-            var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
-            var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
-            var tasks = assignTasks.Concat(wakeTasks);
+            // var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
+            // var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
+            var tasks = jobs.Select(job => this.LoadJob(job));
             await Task.WhenAll(tasks);
             return true;
         }
@@ -372,6 +372,17 @@
         {
             var tasks = this.schematic.Nodes.Select(node => this.AddNode(node.Value, node.Key).ContinueWith((t) => this.NodeMsg(t.Result)));
             await Task.WhenAll(tasks);
+            return true;
+        }
+
+        private async Task<bool> LoadJob(Job job)
+        {
+            await this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result));
+            if (job.Awake)
+            {
+                await this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result));
+            }
+
             return true;
         }
 
