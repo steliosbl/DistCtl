@@ -127,6 +127,7 @@
             this.retryCounter++;
             if (this.retryCounter == Ctl.RequestAttempts)
             {
+                this.Reachable = false;
                 this.LostNode(this.Schematic.ID);
             }
         }
