@@ -542,6 +542,7 @@
                             this.logger.Log(string.Format("Transferred job ID:{0} to node ID:{1}", job.Key, job.Value));
                         }
                     }
+
                     this.logger.Log("Job transfer finished");
                 }
             }

@@ -43,9 +43,14 @@
                     throw new SocketException();
                 }
             }
-            catch (SocketException)
+            catch (Exception e)
             {
-                return null;
+                if (e is SocketException || e is InvalidOperationException)
+                {
+                    return null;
+                }
+
+                throw;
             }
         }
     }
