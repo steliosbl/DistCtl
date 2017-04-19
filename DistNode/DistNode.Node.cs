@@ -212,7 +212,7 @@
         private void WorkerExitedHandler(int id)
         {
             this.AddReport(new Comm.Reports.WorkerExited(id));
-            this.logger.Log(string.Format("Worker { {0} } exited unexpectedly", id), 2);
+            this.logger.Log(string.Format("Worker [{0}] exited unexpectedly", id.ToString()), 2);
         }
 
         private string ExecuteRequest(string requeststr)

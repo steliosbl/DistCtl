@@ -35,6 +35,7 @@
                 startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
                 this.process.StartInfo = startInfo;
                 this.process.Exited += this.OnProcessExited;
+                this.process.EnableRaisingEvents = true;
                 this.process.Start();
             }
         }
