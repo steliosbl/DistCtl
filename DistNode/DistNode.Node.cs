@@ -111,7 +111,7 @@
                 {
                     if (this.workers[id].Awake)
                     {
-                        this.workers[id].StopWork();
+                        bool temp = this.workers[id].Stop().Result;
                     }
 
                     this.workers.Remove(id);
@@ -132,8 +132,12 @@
                 {
                     if (!this.workers[id].Awake)
                     {
-                        this.workers[id].StartWork();
-                        return Constants.Results.Success;
+                        if (this.workers[id].Start().Result)
+                        {
+                            return Constants.Results.Success;
+                        }
+
+                        return Constants.Results.Fail;
                     }
 
                     return Constants.Results.Invalid;
@@ -153,8 +157,12 @@
                 {
                     if (this.workers[id].Awake)
                     {
-                        this.workers[id].StopWork();
-                        return Constants.Results.Success;
+                        if (this.workers[id].Stop().Result)
+                        {
+                            return Constants.Results.Success;
+                        }
+
+                        return Constants.Results.Fail;
                     }
 
                     return Constants.Results.Invalid;

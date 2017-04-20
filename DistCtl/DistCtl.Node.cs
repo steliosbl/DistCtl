@@ -105,7 +105,7 @@
                     {
                         if (report.ReportType == typeof(Comm.Reports.WorkerExited))
                         {
-                            this.HandleReport((Comm.Reports.WorkerExited)report);
+                            this.HandleReport(report as Comm.Reports.WorkerExited);
                         }
                     }
                 }

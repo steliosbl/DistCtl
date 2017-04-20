@@ -242,11 +242,11 @@
             return new Tuple<int, int>(id, await this.AddNode(schematic));
         }
 
-        private async Task<int> AssignJobBalanced(int jobID)
+        private async Task<int> AssignJobBalanced(int jobID, params int[] exempt)
         {
             var l = new List<int>();
             l.Add(jobID);
-            var res = await this.AssignJobsBalanced(l);
+            var res = await this.AssignJobsBalanced(l, exempt);
             return res.Count == 0 ? Results.Success : res[jobID];
         }
 
@@ -423,12 +423,12 @@
         }
         #endregion
 
-        private async Task<Dictionary<int, int>> AssignJobsBalanced(List<int> jobIDs)
+        private async Task<Dictionary<int, int>> AssignJobsBalanced(List<int> jobIDs, params int[] exempt)
         {
             var res = new Dictionary<int, int>();
             if ((this.config.EnableRejectTooManyAssignments && jobIDs.Count <= this.TotalSlotsAvailable) || !this.config.EnableRejectTooManyAssignments)
             {
-                var nodes = this.nodes.Where(node => node.Value.Reachable).ToDictionary(node => node.Key, node => (float)this.GetAssignedJobs(node.Key).Count / node.Value.Schematic.Slots);
+                var nodes = this.nodes.Where(node => node.Value.Reachable && !exempt.Contains(node.Key)).ToDictionary(node => node.Key, node => (float)this.GetAssignedJobs(node.Key).Count / node.Value.Schematic.Slots);
                 jobIDs = jobIDs.OrderBy(job => this.jobs[job].Blueprint.Priority).ToList();
 
                 int slotCount = this.TotalSlotsAvailable;
@@ -467,7 +467,7 @@
                 this.jobs[id].AttemptRestart();
                 if (await this.nodes[this.jobs[id].NodeID].Remove(id) == Results.Success)
                 {
-                    if (await this.AssignJobManual(id, this.jobs[id].NodeID) == Results.Success)
+                    if (await this.AssignJobBalanced(id, this.jobs[id].NodeID) == Results.Success)
                     {
                         return true;
                     }

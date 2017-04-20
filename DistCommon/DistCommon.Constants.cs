@@ -15,6 +15,7 @@
         {
             public const string ProcessFilename = "cmd.exe";
             public const string CmdPrefix = "/C ";
+            public const int CheckDelay = 500;
         }
     }
 

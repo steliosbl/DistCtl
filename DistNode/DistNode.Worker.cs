@@ -1,6 +1,7 @@
 ﻿namespace DistNode
 {
     using System;
+    using System.Threading.Tasks;
 
     internal sealed class Worker
     {
@@ -23,38 +24,61 @@
 
         public bool Awake { get; private set; }
 
-        public void StartWork()
+        public async Task<bool> Start()
         {
             if (!this.Awake)
             {
+                this.supressExitEvent = true;
+                this.StartWork();
+                await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
                 this.supressExitEvent = false;
-                this.Awake = true;
-                var startInfo = new System.Diagnostics.ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
-                startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
-                this.process.StartInfo = startInfo;
-                this.process.Exited += this.OnProcessExited;
-                this.process.EnableRaisingEvents = true;
-                this.process.Start();
+                return this.Awake;
             }
+
+            return false;
         }
 
-        public void StopWork()
+        public async Task<bool> Stop()
+        {
+            if (this.Awake)
+            {
+                this.supressExitEvent = true;
+                this.StopWork();
+                await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
+                this.supressExitEvent = false;
+                return !this.Awake;
+            }
+
+            return false;
+        }
+
+        private void StartWork()
+        {
+            this.Awake = true;
+            var startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.CreateNoWindow = true;
+            startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
+            startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
+            this.process.StartInfo = startInfo;
+            this.process.Exited += this.OnProcessExited;
+            this.process.EnableRaisingEvents = true;
+            this.process.Start();
+        }
+
+        private void StopWork()
         {
             if (this.Awake)
             {
                 this.supressExitEvent = true;
                 this.process.Kill();
-                this.Awake = false;
             }
         }
 
         private void OnProcessExited(object sender, EventArgs e)
         {
+            this.Awake = false;
             if (this.ProcessExited != null && !this.supressExitEvent)
             {
-                this.Awake = false;
                 this.ProcessExited(this.job.ID);
             }
         }
