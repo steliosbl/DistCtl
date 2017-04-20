@@ -79,7 +79,7 @@
 
         public async Task<bool> Test()
         {
-            var res = await this.SendRequest(new Comm.Requests.Base());
+            var res = await this.SendRequest(new Comm.Requests.Test());
             return res != null ? res.ResponseCode == Results.Success : false;
         }
 

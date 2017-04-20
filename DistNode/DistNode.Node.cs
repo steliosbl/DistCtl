@@ -276,6 +276,11 @@
             return new Comm.Responses.Base(this.Sleep(request.ID));
         }
 
+        private Comm.Responses.Base HandleRequest(Comm.Requests.Test request)
+        {
+            return new Comm.Responses.Base(Constants.Results.Success);
+        }
+
         private Comm.Responses.Base HandleRequest(Comm.Requests.Wake request)
         {
             return new Comm.Responses.Base(this.Wake(request.ID));
