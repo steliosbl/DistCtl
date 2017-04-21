@@ -7,18 +7,18 @@
 
     public class Console
     {
+        private readonly Dictionary<string, Action<string[]>> knownCommands;
         private DistCommon.LivePrompt prompt;
         private DistCtl.Controller controller;
-        private readonly Dictionary<string, Action<string[]>> lCommands;
 
         public Console()
         {
             this.prompt = new DistCommon.LivePrompt();
             this.prompt.AddInputHandler(this.InputHandler);
-            this.lCommands = new Dictionary<string, Action<string[]>>()
+            this.knownCommands = new Dictionary<string, Action<string[]>>()
             {
-                        { "help", this.Help},
-                {"exit", this.Exit }
+                { "help", this.Help },
+                { "exit", this.Exit }
             };
         }
 
@@ -46,14 +46,16 @@
         {
             string command_main = command.Split(new char[] { ' ' }).First();
             string[] arguments = command.Split(new char[] { ' ' }).Skip(1).ToArray();
-            if (lCommands.ContainsKey(command_main))
+            if (this.knownCommands.ContainsKey(command_main))
             {
                 Action<string[]> function_to_execute = null;
-                lCommands.TryGetValue(command_main, out function_to_execute);
+                this.knownCommands.TryGetValue(command_main, out function_to_execute);
                 Task.Run(() => function_to_execute(arguments));
             }
             else
+            {
                 this.Say("Command '" + command_main + "' not found");
+            } 
         }
 
         private void Help(string[] args)

@@ -33,9 +33,9 @@
         #region Events
         public delegate void ExitCommandHandler();
 
-        public event ExitCommandHandler ExitCommand;
-
         private delegate void DistributionChangedHandler();
+
+        public event ExitCommandHandler ExitCommand;
 
         private event DistributionChangedHandler DistributionChanged;
         #endregion
