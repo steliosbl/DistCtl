@@ -11,7 +11,6 @@
             this.Converters.Add(new IPEndPointConverter());
             this.Converters.Add(new TypeConverter());
             this.TypeNameHandling = TypeNameHandling.Auto;
-            this.MissingMemberHandling = MissingMemberHandling.Error;
         }
     }
 }
