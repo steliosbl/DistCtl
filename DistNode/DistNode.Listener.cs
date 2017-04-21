@@ -25,6 +25,7 @@
         public async Task<int> StartListener()
         {
             var listener = new TcpListener(this.localEP);
+            listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             listener.Start();
             while (true)
             {
