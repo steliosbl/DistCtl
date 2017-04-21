@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using DistCommon;
-    using DistCommon.Constants;
+    using Results = DistCommon.Constants.Results;
 
     public sealed class Controller
     {
@@ -24,7 +24,7 @@
             this.config = config;
             this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
             this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
-            this.logger = new Logger(Ctl.LogFilename, sayHandler);
+            this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, sayHandler);
         }
         #endregion
 
@@ -361,8 +361,8 @@
         private async Task<bool> LoadJobs()
         {
             var jobs = JFI.GetObject<List<Job>>(this.config.PreLoadFilename);
-            // var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
-            // var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
+            //// var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
+            //// var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
             var tasks = jobs.Select(job => this.LoadJob(job));
             await Task.WhenAll(tasks);
             return true;

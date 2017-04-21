@@ -242,7 +242,7 @@
 
                 if (!supressLog)
                 {
-                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Message[result.ResponseCode]));
+                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Messages[result.ResponseCode]));
                 }
     
                 return JsonConvert.SerializeObject(result);

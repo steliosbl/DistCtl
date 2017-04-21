@@ -7,10 +7,11 @@
     {
         public CustomSettings() : base()
         {
-            Converters.Add(new IPAddressConverter());
-            Converters.Add(new IPEndPointConverter());
-            Converters.Add(new TypeConverter());
-            TypeNameHandling = TypeNameHandling.Auto;
+            this.Converters.Add(new IPAddressConverter());
+            this.Converters.Add(new IPEndPointConverter());
+            this.Converters.Add(new TypeConverter());
+            this.TypeNameHandling = TypeNameHandling.Auto;
+            this.MissingMemberHandling = MissingMemberHandling.Error;
         }
     }
 }
