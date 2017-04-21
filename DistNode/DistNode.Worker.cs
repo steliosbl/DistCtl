@@ -69,7 +69,6 @@
         {
             if (this.Awake)
             {
-                this.supressExitEvent = true;
                 this.process.Kill();
             }
         }

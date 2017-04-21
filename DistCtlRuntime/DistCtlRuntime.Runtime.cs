@@ -7,7 +7,7 @@
     {
         private DistCtl.Config config;
         private Logger.SayHandler sayHandler;
-        private LivePrompt prompt;
+        private DistCtlConsole.Console console;
         private DistCtl.Controller controller;
         private Logger tempLogger;
 
@@ -36,15 +36,19 @@
 
             if (this.config.EnableLocalConsole)
             {
-                this.prompt = new DistCommon.LivePrompt();
-                this.sayHandler = this.prompt.Say;
+                this.console = new DistCtlConsole.Console();
+                this.sayHandler = this.console.Say;
             }
             else
             {
                 this.sayHandler = System.Console.WriteLine;
             }
 
-            this.controller = new DistCtl.Controller(this.config, this.sayHandler);
+            this.controller = new DistCtl.Controller(this.config, this.ExitHandler, this.sayHandler);
+            if (this.config.EnableLocalConsole)
+            {
+                this.console.AddController(this.controller);
+            }
         }
 
         public void Start()
@@ -55,6 +59,10 @@
                 if (!this.config.EnableLocalConsole)
                 {
                     System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                }
+                else
+                {
+                    this.console.Start();
                 }
             }
             catch (Exception e)
@@ -72,6 +80,12 @@
 
                 throw;
             }
+        }
+
+        public void ExitHandler()
+        {
+            this.console.Stop();
+            Environment.Exit(0);
         }
     }
 }

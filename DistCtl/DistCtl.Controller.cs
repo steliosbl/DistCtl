@@ -16,19 +16,25 @@
         private ConcurrentDictionary<int, Node> nodes;
         private DistCommon.Schema.Controller schematic;
         private Logger logger;
+        private bool ignoreAllEvents = false;
         #endregion
 
         #region Constructor
-        public Controller(Config config, Logger.SayHandler sayHandler)
+        public Controller(Config config, ExitCommandHandler exitHandler, Logger.SayHandler sayHandler)
         {
             this.config = config;
             this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
             this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
             this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, sayHandler);
+            this.ExitCommand += exitHandler;
         }
         #endregion
 
         #region Events
+        public delegate void ExitCommandHandler();
+
+        public event ExitCommandHandler ExitCommand;
+
         private delegate void DistributionChangedHandler();
 
         private event DistributionChangedHandler DistributionChanged;
@@ -76,6 +82,11 @@
         public Task<int> Assign(int jobID, int nodeID)
         {
             return this.AssignJobManual(jobID, nodeID);
+        }
+
+        public bool Exit()
+        {
+            return this.ExitController().Result;
         }
 
         public bool Initialize()
@@ -266,6 +277,18 @@
             }
 
             return Results.NotFound;
+        }
+
+        private async Task<bool> ExitController()
+        {
+            this.logger.Log("Exiting controller...", 1);
+            this.logger.Log("Resetting nodes...", 1);
+            await this.ResetAll();
+            this.nodes.Clear();
+            this.logger.Log("Shutting down interfaces", 1);
+            this.ExitCommand();
+            this.logger.Log("Done");
+            return true;
         }
 
         private async Task<int> RemoveJob(int jobID)
@@ -511,8 +534,11 @@
 
         private void DistributionChangeHandler()
         {
-            this.logger.Log("Beginning load balance");
-            Task.Run(this.BalanceAllJobs);
+            if (!this.ignoreAllEvents)
+            {
+                this.logger.Log("Beginning load balance");
+                Task.Run(this.BalanceAllJobs);
+            }
         }
 
         private List<Job> GetAssignedJobs(int id)
@@ -522,41 +548,55 @@
 
         private void LostNodeHandler(int id)
         {
-            if (this.nodes.ContainsKey(id))
+            if (!this.ignoreAllEvents)
             {
-                this.logger.Log(string.Format("Lost node ID:{0}", id), 2);
-                if (this.config.EnableRedundancy)
+                if (this.nodes.ContainsKey(id))
                 {
-                    this.logger.Log(string.Format("Beginning job transfer from node ID:{0}", id));
-                    var res = this.Transfer(id).Result;
-                    foreach (var job in res)
+                    this.logger.Log(string.Format("Lost node ID:{0}", id), 2);
+                    if (this.config.EnableRedundancy)
                     {
-                        if (job.Value == null)
+                        this.logger.Log(string.Format("Beginning job transfer from node ID:{0}", id));
+                        var res = this.Transfer(id).Result;
+                        foreach (var job in res)
                         {
-                            this.logger.Log(string.Format("Failed to transfer job ID:{0}", job.Key), 1);
-                            this.jobs[job.Key].Transfer(-1);
+                            if (job.Value == null)
+                            {
+                                this.logger.Log(string.Format("Failed to transfer job ID:{0}", job.Key), 1);
+                                this.jobs[job.Key].Transfer(-1);
+                            }
+                            else
+                            {
+                                this.logger.Log(string.Format("Transferred job ID:{0} to node ID:{1}", job.Key, job.Value));
+                            }
                         }
-                        else
-                        {
-                            this.logger.Log(string.Format("Transferred job ID:{0} to node ID:{1}", job.Key, job.Value));
-                        }
-                    }
 
-                    this.logger.Log("Job transfer finished");
+                        this.logger.Log("Job transfer finished");
+                    }
                 }
             }
         }
 
         private void RecoveredNodeHandler(int id)
         {
-            if (this.nodes.ContainsKey(id))
+            if (!this.ignoreAllEvents)
             {
-                this.logger.Log(string.Format("Recovered node ID:{0}", id));
-                Node node;
-                this.nodes.TryRemove(id, out node);
-                this.AddNode(node.Schematic).RunSynchronously();
-                this.DistributionChanged();
+                if (this.nodes.ContainsKey(id))
+                {
+                    this.logger.Log(string.Format("Recovered node ID:{0}", id));
+                    Node node;
+                    this.nodes.TryRemove(id, out node);
+                    this.AddNode(node.Schematic).RunSynchronously();
+                    this.DistributionChanged();
+                }
             }
+        }
+
+        private async Task<int> ResetAll()
+        {
+            this.ignoreAllEvents = true;
+            var tasks = this.nodes.Where(node => node.Value.Reachable).Select(node => node.Value.Reset());
+            await Task.WhenAll(tasks);
+            return Results.Success;
         }
 
         private async Task<Dictionary<int, int?>> Transfer(int nodeID)
