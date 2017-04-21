@@ -3,9 +3,9 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using DistCommon.Constants;
     using Newtonsoft.Json;
     using Comm = DistCommon.Comm;
+    using Results = DistCommon.Constants.Results;
 
     internal sealed class Node
     {
@@ -125,7 +125,7 @@
         private void SendFailedHandler()
         {
             this.retryCounter++;
-            if (this.retryCounter == Ctl.RequestAttempts)
+            if (this.retryCounter == DistCommon.Constants.Ctl.RequestAttempts)
             {
                 this.Reachable = false;
                 this.LostNode(this.Schematic.ID);

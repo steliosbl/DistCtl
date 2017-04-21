@@ -78,10 +78,6 @@
             return this.AssignJobManual(jobID, nodeID);
         }
 
-        public void HandleCommand(string input)
-        {
-        }
-
         public bool Initialize()
         {
             return this.StartInit().Result;
@@ -429,32 +425,35 @@
             if ((this.config.EnableRejectTooManyAssignments && jobIDs.Count <= this.TotalSlotsAvailable) || !this.config.EnableRejectTooManyAssignments)
             {
                 var nodes = this.nodes.Where(node => node.Value.Reachable && !exempt.Contains(node.Key)).ToDictionary(node => node.Key, node => (float)this.GetAssignedJobs(node.Key).Count / node.Value.Schematic.Slots);
-                jobIDs = jobIDs.OrderBy(job => this.jobs[job].Blueprint.Priority).ToList();
-
-                int slotCount = this.TotalSlotsAvailable;
-                while (jobIDs.Count > 0 && slotCount > 0)
+                if (nodes.Count != 0)
                 {
-                    var min = nodes.Aggregate((l, r) => l.Value < r.Value ? l : r);
-                    if (min.Value != 1)
+                    jobIDs = jobIDs.OrderBy(job => this.jobs[job].Blueprint.Priority).ToList();
+
+                    int slotCount = this.TotalSlotsAvailable;
+                    while (jobIDs.Count > 0 && slotCount > 0)
                     {
-                        int jobID = jobIDs[0];
-                        int assignRes = await this.AssignJobManual(jobID, min.Key);
-                        if (assignRes == Results.Success)
+                        var min = nodes.Aggregate((l, r) => l.Value < r.Value ? l : r);
+                        if (min.Value != 1)
                         {
-                            nodes[min.Key] = (float)this.GetAssignedJobs(min.Key).Count / this.nodes[min.Key].Schematic.Slots;
-                            jobIDs.RemoveAt(0);
-                            slotCount -= 1;
+                            int jobID = jobIDs[0];
+                            int assignRes = await this.AssignJobManual(jobID, min.Key);
+                            if (assignRes == Results.Success)
+                            {
+                                nodes[min.Key] = (float)this.GetAssignedJobs(min.Key).Count / this.nodes[min.Key].Schematic.Slots;
+                                jobIDs.RemoveAt(0);
+                                slotCount -= 1;
+                            }
+
+                            res.Add(jobID, assignRes);
                         }
+                        else
+                        {
+                            break;
+                        }
+                    }
 
-                        res.Add(jobID, assignRes);
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    return res;
                 }
-
-                return res;
             }
 
             return jobIDs.ToDictionary(job => job, job => Results.Fail);
