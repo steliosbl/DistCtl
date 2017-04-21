@@ -8,8 +8,8 @@
     {
         private object locker;
         private List<char> buffer;
-        private string prompt = ">";
-        private Thread loopThread;
+        private string prompt = "> ";
+        ////private Thread loopThread;
 
         public LivePrompt()
         {
@@ -17,8 +17,8 @@
             this.buffer = new List<char>();
             this.buffer.AddRange(this.prompt);
             Console.Write(new string(this.buffer.ToArray()));
-            this.loopThread = new Thread(() => this.MainLoop());
-            this.loopThread.Start();
+            ////this.loopThread = new Thread(() => this.MainLoop());
+            ////this.loopThread.Start();
         }
 
         public delegate void InputReceivedHandler(string input);
@@ -35,10 +35,11 @@
                     lock (this.locker)
                     {
                         Console.WriteLine();
+                        var temp = new List<char>(this.buffer);
                         this.buffer.Clear();
                         this.buffer.AddRange(this.prompt);
-                        Console.Write(this.buffer.ToArray());
-                        this.OnInputReceived(this.buffer.ToString());
+                        temp.RemoveRange(0, this.prompt.Length);
+                        this.OnInputReceived(new string(temp.ToArray()));
                     }
                 }
                 else
