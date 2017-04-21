@@ -42,6 +42,14 @@
                         this.OnInputReceived(new string(temp.ToArray()));
                     }
                 }
+                else if (k.Key == ConsoleKey.Backspace && this.buffer.Count > this.prompt.Length)
+                {
+                    this.buffer.RemoveAt(this.buffer.Count - 1);
+                    lock (this.locker)
+                    {
+                        Console.Write(" \b");
+                    }
+                }
                 else
                 {
                     this.buffer.Add(k.KeyChar);
