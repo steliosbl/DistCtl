@@ -36,6 +36,7 @@
                 var k = Console.ReadKey();
                 if (k.Key == ConsoleKey.Enter && this.buffer.Count > 0)
                 {
+                    this.historyIndex = 0;
                     lock (this.locker)
                     {
                         Console.WriteLine();
