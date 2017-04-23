@@ -194,7 +194,7 @@
 
         private async Task<int> AddJob(Job job, int nodeID)
         {
-            if (!this.jobs.ContainsKey(job.Blueprint.ID))
+            if (!this.jobs.ContainsKey(job.Blueprint.ID) && job.Blueprint.ID > 0)
             {
                 this.jobs.TryAdd(job.Blueprint.ID, job);
                 int res;
@@ -220,7 +220,7 @@
 
         private async Task<int> AddNode(DistCommon.Schema.Node schematic)
         {
-            if (!this.nodes.ContainsKey(schematic.ID))
+            if (!this.nodes.ContainsKey(schematic.ID) && schematic.ID > 0)
             {
                 var node = new Node(schematic, this.config.UpdateDelay, this.config.TimeoutDuration, this.LostNodeHandler, this.RecoveredNodeHandler, this.WorkerExitedHandler);
                 if (await node.Test())
