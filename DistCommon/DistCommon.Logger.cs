@@ -8,7 +8,7 @@
         private readonly string filename;
         private SayHandler say;
 
-        public Logger(string filename) : this(filename, Console.WriteLine)
+        public Logger(string filename) : this(filename, StdSay)
         {
         }
 
@@ -19,7 +19,14 @@
             this.say = sayHandler;
         }
 
-        public delegate void SayHandler(string msg);
+        public delegate void SayHandler(string msg,  ConsoleColor foregroundColor);
+
+        public static void StdSay(string msg, ConsoleColor foregroundColor)
+        {
+            Console.ForegroundColor = foregroundColor;
+            Console.WriteLine(msg);
+            Console.ResetColor();
+        }
 
         public void Log(string msg, int severity = 0)
         {
@@ -28,7 +35,7 @@
             string message = "[" + DateTime.Now.ToString() + "] " + tags[severity] + " " + msg;
 
             this.Write(message + '\n');
-            this.say(message);
+            this.say(message, Constants.Logger.Colors[severity]);
         }
 
         private void Write(string message)

@@ -22,9 +22,9 @@
             };
         }
 
-        public void Say(string msg)
+        public void Say(string msg, ConsoleColor foregroundColor = ConsoleColor.White)
         {
-            this.prompt.Say(msg);
+            this.prompt.Say(msg, foregroundColor);
         }
 
         public void Start()

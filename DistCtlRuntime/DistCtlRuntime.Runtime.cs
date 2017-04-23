@@ -41,7 +41,7 @@
             }
             else
             {
-                this.sayHandler = System.Console.WriteLine;
+                this.sayHandler = Logger.StdSay;
             }
 
             this.controller = new DistCtl.Controller(this.config, this.ExitHandler, this.sayHandler);

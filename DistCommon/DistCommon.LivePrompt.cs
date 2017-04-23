@@ -57,7 +57,7 @@
             }
         }
 
-        public void Say(string msg)
+        public void Say(string msg, ConsoleColor foregroundColor = ConsoleColor.White)
         {
             lock (this.locker)
             {
@@ -68,7 +68,9 @@
                     msg += new string(' ', excess);
                 }
 
+                Console.ForegroundColor = foregroundColor;
                 Console.WriteLine(msg);
+                Console.ResetColor();
                 Console.Write(new string(this.buffer.ToArray()));
             }
         }

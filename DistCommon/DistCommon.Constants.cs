@@ -13,6 +13,11 @@
             public static readonly string[] Messages = { "Fail", "Success", "Not Found", "Invalid", "Not Constructed", "Unreachable" };
         }
 
+        public static class Logger
+        {
+            public static readonly System.ConsoleColor[] Colors = { System.ConsoleColor.White, System.ConsoleColor.Yellow, System.ConsoleColor.Red, System.ConsoleColor.Black };
+        }
+
         public static class Comm
         {
             public const int StreamSize = 512;
