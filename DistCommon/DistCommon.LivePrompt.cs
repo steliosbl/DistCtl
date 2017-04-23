@@ -9,12 +9,16 @@
         private object locker;
         private List<char> buffer;
         private string prompt = "> ";
+        private int historyIndex = 0;
+        private List<string> history;
         ////private Thread loopThread;
 
         public LivePrompt()
         {
             this.locker = new object();
             this.buffer = new List<char>();
+            this.history = new List<string>();
+            this.history.Add(string.Empty);
             this.buffer.AddRange(this.prompt);
             Console.Write(new string(this.buffer.ToArray()));
             ////this.loopThread = new Thread(() => this.MainLoop());
@@ -39,15 +43,36 @@
                         this.buffer.Clear();
                         this.buffer.AddRange(this.prompt);
                         temp.RemoveRange(0, this.prompt.Length);
-                        this.OnInputReceived(new string(temp.ToArray()));
+                        string tempstr = new string(temp.ToArray());
+                        this.OnInputReceived(tempstr);
+                        this.history.Insert(1, tempstr);
                     }
                 }
-                else if (k.Key == ConsoleKey.Backspace && this.buffer.Count > this.prompt.Length)
+                else if (k.Key == ConsoleKey.Backspace)
                 {
-                    this.buffer.RemoveAt(this.buffer.Count - 1);
-                    lock (this.locker)
+                    if (this.buffer.Count > this.prompt.Length)
                     {
-                        Console.Write(" \b");
+                        this.buffer.RemoveAt(this.buffer.Count - 1);
+                        lock (this.locker)
+                        {
+                            Console.Write(" \b");
+                        }
+                    }
+                }
+                else if (k.Key == ConsoleKey.UpArrow)
+                {
+                    if (this.historyIndex < this.history.Count - 1)
+                    {
+                        this.historyIndex += 1;
+                        this.ShowHistory(this.historyIndex);
+                    }
+                }
+                else if (k.Key == ConsoleKey.DownArrow)
+                {
+                    if (this.historyIndex > 0)
+                    {
+                        this.historyIndex -= 1;
+                        this.ShowHistory(this.historyIndex);
                     }
                 }
                 else
@@ -78,6 +103,23 @@
         public void AddInputHandler(InputReceivedHandler inputHandler)
         {
             this.InputReceived += inputHandler;
+        }
+
+        private static void ClearCurrentConsoleLine()
+        {
+            int currentLineCursor = Console.CursorTop;
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, currentLineCursor);
+        }
+
+        private void ShowHistory(int index)
+        {
+            ClearCurrentConsoleLine();
+            this.buffer.Clear();
+            this.buffer.AddRange(this.prompt.ToCharArray());
+            this.buffer.AddRange(this.history[index].ToCharArray());
+            Console.Write(new string(this.buffer.ToArray()));
         }
 
         private void OnInputReceived(string input)
