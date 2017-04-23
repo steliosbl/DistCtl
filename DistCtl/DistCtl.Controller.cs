@@ -53,7 +53,7 @@
         {
             get
             {
-                return this.TotalSlots - this.jobs.Count(job => job.Value.NodeID != 0);
+                return this.TotalSlots - this.jobs.Count(job => job.Value.NodeID != -1);
             }
         }
         #endregion
