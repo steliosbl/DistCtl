@@ -21,7 +21,8 @@
             {
                 { "help", this.Help },
                 { "exit", this.Exit },
-                { "add", this.Add }
+                { "add", this.Add },
+                { "remove", this.Remove }
             };
         }
 
@@ -202,6 +203,53 @@
             }
 
             return true;
+        }
+
+        private async void Remove(string[] args)
+        {
+            if (args.Length > 1)
+            {
+                string subCmd = args[0];
+                int id = -1;
+                foreach (string arg in args)
+                {
+                    var arr = arg.Split('=');
+                    if (arr.Length == 2)
+                    {
+                        switch (arr[0])
+                        {
+                            case "id":
+                                if (int.TryParse(arr[1], out id))
+                                {
+                                    id = Math.Abs(id);
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                if (id != -1)
+                {
+                    int result;
+                    if (subCmd == "job" || subCmd == "node")
+                    {
+                        if (subCmd == "job")
+                        {
+                            result = await this.controller.Remove(id, 0);
+                        }
+                        else
+                        {
+                            result = await this.controller.Remove(id);
+                        }
+
+                        this.SayResult(result);
+                    }
+                }
+            }
+            else
+            {
+                this.SayInvalid();
+            }
         }
 
         private void Help(string[] args)

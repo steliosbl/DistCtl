@@ -316,7 +316,9 @@
                 int res = await this.nodes[nodeID].Reset();
                 if (res == Results.Success)
                 {
-                    await this.AssignJobsBalanced(this.GetAssignedJobs(nodeID).Select(job => job.NodeID).ToList());
+                    await this.AssignJobsBalanced(this.GetAssignedJobs(nodeID).Select(job => job.NodeID).ToList(), nodeID);
+                    Node temp;
+                    this.nodes.TryRemove(nodeID, out temp);
                 }
 
                 return res;
@@ -463,10 +465,10 @@
                             if (assignRes == Results.Success)
                             {
                                 nodes[min.Key] = (float)this.GetAssignedJobs(min.Key).Count / this.nodes[min.Key].Schematic.Slots;
-                                jobIDs.RemoveAt(0);
                                 slotCount -= 1;
                             }
 
+                            jobIDs.RemoveAt(0);
                             res.Add(jobID, assignRes);
                         }
                         else
