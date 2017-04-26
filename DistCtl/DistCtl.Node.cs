@@ -178,6 +178,7 @@
                 }
             }
 
+            this.SendFailedHandler();
             return default(T);
         }
     }
