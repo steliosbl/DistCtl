@@ -12,7 +12,6 @@
         public Worker(DistCommon.Job.Blueprint job, ProcessExitedHandler exitedHandler)
         {
             this.job = job;
-            this.process = new System.Diagnostics.Process();
             this.Awake = false;
             this.ProcessExited += exitedHandler;
             this.supressExitEvent = true;
@@ -55,10 +54,12 @@
         private void StartWork()
         {
             this.Awake = true;
+            this.process = new System.Diagnostics.Process();
             var startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.CreateNoWindow = true;
-            startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
-            startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
+            startInfo.FileName = this.job.Command;
+            ////startInfo.FileName = DistCommon.Constants.Node.Worker.ProcessFilename;
+            ////startInfo.Arguments = DistCommon.Constants.Node.Worker.CmdPrefix + this.job.Command;
             this.process.StartInfo = startInfo;
             this.process.Exited += this.OnProcessExited;
             this.process.EnableRaisingEvents = true;
