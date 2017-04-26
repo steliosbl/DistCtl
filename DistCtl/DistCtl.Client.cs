@@ -20,24 +20,29 @@
 
         public async Task<string> Send(string message)
         {
+            var task = this.SendMsg(message);
+            var timeout = Task.Delay(this.timeout);
+            var res = await Task.WhenAny(task, timeout);
+            return res == timeout ? null : task.Result;
+        }
+
+        private async Task<string> SendMsg(string message)
+        {
             try
             {
                 using (var client = new TcpClient())
                 {
-                    var task = client.ConnectAsync(this.address, this.port);
-                    if (await Task.WhenAny(task, Task.Delay(this.timeout)) == task)
+                    await client.ConnectAsync(this.address, this.port);
+                    using (var stream = client.GetStream())
                     {
-                        using (var stream = client.GetStream())
-                        {
-                            var data = System.Text.Encoding.ASCII.GetBytes(message);
-                            stream.Write(data, 0, data.Length);
+                        var data = System.Text.Encoding.ASCII.GetBytes(message);
+                        stream.Write(data, 0, data.Length);
 
-                            data = new byte[DistCommon.Constants.Comm.StreamSize];
-                            int bytes = stream.Read(data, 0, data.Length);
-                            string response = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                        data = new byte[DistCommon.Constants.Comm.StreamSize];
+                        int bytes = stream.Read(data, 0, data.Length);
+                        string response = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
 
-                            return response;
-                        }
+                        return response;
                     }
 
                     throw new SocketException();
