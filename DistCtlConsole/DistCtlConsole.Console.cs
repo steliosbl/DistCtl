@@ -22,7 +22,9 @@
                 { "help", this.Help },
                 { "exit", this.Exit },
                 { "add", this.Add },
-                { "remove", this.Remove }
+                { "remove", this.Remove },
+                { "sleep", this.Sleep },
+                { "wake", this.Wake }
             };
         }
 
@@ -223,6 +225,7 @@
                                 {
                                     id = Math.Abs(id);
                                 }
+
                                 break;
                         }
                     }
@@ -245,6 +248,78 @@
                         this.SayResult(result);
                     }
                 }
+            }
+            else
+            {
+                this.SayInvalid();
+            }
+        }
+
+        private async void Sleep(string[] args)
+        {
+            int id = -1;
+            if (args.Length > 0)
+            {
+                foreach (string arg in args)
+                {
+                    var arr = arg.Split('=');
+                    if (arr.Length == 2)
+                    {
+                        if (arr[0] == "id")
+                        {
+                            if (int.TryParse(arr[1], out id))
+                            {
+                                id = Math.Abs(id);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                this.SayInvalid();
+            }
+
+            if (id != -1)
+            {
+                var result = await this.controller.Sleep(id);
+                this.SayResult(result);
+            }
+            else
+            {
+                this.SayInvalid();
+            }
+        }
+
+        private async void Wake(string[] args)
+        {
+            int id = -1;
+            if (args.Length > 0)
+            {
+                foreach (string arg in args)
+                {
+                    var arr = arg.Split('=');
+                    if (arr.Length == 2)
+                    {
+                        if (arr[0] == "id")
+                        {
+                            if (int.TryParse(arr[1], out id))
+                            {
+                                id = Math.Abs(id);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                this.SayInvalid();
+            }
+
+            if (id != -1)
+            {
+                var result = await this.controller.Wake(id);
+                this.SayResult(result);
             }
             else
             {
