@@ -11,6 +11,8 @@
         private string prompt = "> ";
         private int historyIndex = 0;
         private List<string> history;
+        private int cursorLeft;
+        private bool cursorMoved;
         ////private Thread loopThread;
 
         public LivePrompt()
@@ -18,6 +20,8 @@
             this.locker = new object();
             this.buffer = new List<char>();
             this.history = new List<string>();
+            this.cursorLeft = this.prompt.Length;
+            this.cursorMoved = false;
             this.history.Add(string.Empty);
             this.buffer.AddRange(this.prompt);
             Console.Write(new string(this.buffer.ToArray()));
@@ -33,9 +37,11 @@
         {
             while (true)
             {
-                var k = Console.ReadKey();
+                var k = Console.ReadKey(true);
                 if (k.Key == ConsoleKey.Enter && this.buffer.Count > 0)
                 {
+                    this.cursorLeft = this.prompt.Length;
+                    this.cursorMoved = false;
                     this.historyIndex = 0;
                     lock (this.locker)
                     {
@@ -51,13 +57,10 @@
                 }
                 else if (k.Key == ConsoleKey.Backspace)
                 {
-                    if (this.buffer.Count > this.prompt.Length)
+                    if (this.cursorLeft > this.prompt.Length)
                     {
-                        this.buffer.RemoveAt(this.buffer.Count - 1);
-                        lock (this.locker)
-                        {
-                            Console.Write(" \b");
-                        }
+                        this.buffer.RemoveAt(this.cursorLeft - 1);
+                        this.cursorLeft -= 1;
                     }
                 }
                 else if (k.Key == ConsoleKey.UpArrow)
@@ -76,10 +79,38 @@
                         this.ShowHistory(this.historyIndex);
                     }
                 }
+                else if (k.Key == ConsoleKey.LeftArrow)
+                {
+                    if (this.cursorLeft > this.prompt.Length - 1)
+                    {
+                        this.cursorMoved = true;
+                        this.cursorLeft -= 1;
+                    }
+                }
+                else if (k.Key == ConsoleKey.RightArrow)
+                {
+                    if (this.cursorLeft < this.buffer.Count)
+                    {
+                        this.cursorLeft += 1;
+                    }
+                }
                 else
                 {
-                    this.buffer.Add(k.KeyChar);
+                    this.buffer.Insert(this.cursorLeft, k.KeyChar);
+                    if (this.cursorMoved)
+                    {
+                        this.cursorLeft += 1;
+                    }
                 }
+
+                if (!this.cursorMoved)
+                {
+                    this.cursorLeft = this.buffer.Count;
+                }
+
+                ClearCurrentConsoleLine();
+                Console.Write(new string(this.buffer.ToArray()));
+                Console.SetCursorPosition(this.cursorLeft, Console.CursorTop);
             }
         }
 
