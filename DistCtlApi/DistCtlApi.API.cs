@@ -9,7 +9,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
 
-    public class API
+    public static class API
     {
         ////public static void Main(string[] args)
         ////{
@@ -22,6 +22,10 @@
 
         ////    host.Run();
         ////}
+
+        public static void Main()
+        {
+        }
 
         public static void Run(DistCtl.Controller ctl)
         {
