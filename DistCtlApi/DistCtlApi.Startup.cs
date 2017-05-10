@@ -10,7 +10,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
-    public class Startup
+    internal sealed class Startup
     {
         private DistCtl.IController ctl;
 
