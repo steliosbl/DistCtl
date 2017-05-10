@@ -8,7 +8,7 @@
     using DistCommon;
     using Results = DistCommon.Constants.Results;
 
-    public sealed class Controller
+    public sealed class Controller : IController
     {
         #region Fields
         private Config config;
