@@ -89,6 +89,26 @@
             return this.ExitController().Result;
         }
 
+        public JobInfo GetJob(int id)
+        {
+            return this.GetJobInfo(id);
+        }
+
+        public Dictionary<int, JobInfo> GetJob()
+        {
+            return this.GetJobsInfo();
+        }
+
+        public NodeInfo GetNode(int id)
+        {
+            return this.GetNodeInfo(id);
+        }
+
+        public Dictionary<int, NodeInfo> GetNode()
+        {
+            return this.GetNodesInfo();
+        }
+
         public bool Initialize()
         {
             return this.StartInit().Result;
@@ -325,6 +345,36 @@
             }
 
             return Results.NotFound;
+        }
+
+        private JobInfo GetJobInfo(int id)
+        {
+            if (this.jobs.ContainsKey(id))
+            {
+                return this.jobs[id].Info;
+            }
+
+            return null;
+        }
+
+        private Dictionary<int, JobInfo> GetJobsInfo()
+        {
+            return this.jobs.ToDictionary(job => job.Key, job => job.Value.Info);
+        }
+
+        private NodeInfo GetNodeInfo(int id)
+        {
+            if (this.nodes.ContainsKey(id))
+            {
+                return this.nodes[id].Info;
+            }
+
+            return null;
+        }
+
+        private Dictionary<int, NodeInfo> GetNodesInfo()
+        {
+            return this.nodes.ToDictionary(node => node.Key, node => node.Value.Info);
         }
 
         private async Task<int> SleepJob(int jobID)

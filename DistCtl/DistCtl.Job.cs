@@ -25,6 +25,14 @@
             }
         }
 
+        public JobInfo Info
+        {
+            get
+            {
+                return new JobInfo(this.Blueprint, this.NodeID);
+            }
+        }
+
         public void Transfer(int id)
         {
             this.NodeID = id;

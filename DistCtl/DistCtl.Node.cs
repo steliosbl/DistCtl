@@ -41,6 +41,14 @@
 
         public bool Reachable { get; private set; }
 
+        public NodeInfo Info
+        {
+            get
+            {
+                return new NodeInfo(this.Schematic, this.Reachable);
+            }
+        }
+
         public async Task<int> Assign(Job job)
         {
             var res = await this.SendRequest(new Comm.Requests.Assign(job.Blueprint));

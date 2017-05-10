@@ -1,6 +1,7 @@
 ﻿namespace DistCtl
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     public interface IController
@@ -14,6 +15,14 @@
         Task<int> Assign(int jobID);
 
         Task<int> Assign(int jobID, int nodeID);
+
+        JobInfo GetJob(int jobID);
+
+        Dictionary<int, JobInfo> GetJob();
+
+        NodeInfo GetNode(int nodeID);
+
+        Dictionary<int, NodeInfo> GetNode();
 
         Task<int> Remove(int nodeID);
 
