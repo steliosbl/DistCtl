@@ -4,8 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
+    using DistCommon;
     using Comm = DistCommon.Comm;
-    using Results = DistCommon.Constants.Results;
 
     internal sealed class Node
     {
@@ -49,46 +49,46 @@
             }
         }
 
-        public async Task<int> Assign(Job job)
+        public async Task<Result> Assign(Job job)
         {
             var res = await this.SendRequest(new Comm.Requests.Assign(job.Blueprint));
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
-        public async Task<int> Construct()
+        public async Task<Result> Construct()
         {
             var res = await this.SendRequest(new Comm.Requests.Construct(this.Schematic));
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
-        public async Task<int> Remove(int id)
+        public async Task<Result> Remove(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Remove(id));
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
-        public async Task<int> Reset()
+        public async Task<Result> Reset()
         {
             var res = await this.SendRequest(new Comm.Requests.Reset());
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
-        public async Task<int> Sleep(int id)
+        public async Task<Result> Sleep(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Sleep(id));
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
-        public async Task<int> Wake(int id)
+        public async Task<Result> Wake(int id)
         {
             var res = await this.SendRequest(new Comm.Requests.Wake(id));
-            return res != null ? res.ResponseCode : Results.Unreachable;
+            return res != null ? res.Result : Result.Unreachable;
         }
 
         public async Task<bool> Test()
         {
             var res = await this.SendRequest(new Comm.Requests.Test());
-            return res != null ? res.ResponseCode == Results.Success : false;
+            return res != null ? res.Result == Result.Success : false;
         }
 
         public void StartReportTimer()

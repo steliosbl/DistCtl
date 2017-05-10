@@ -4,7 +4,7 @@
 
     public sealed class Report : Base
     {
-        public Report(List<Reports.Base> reports) : base(DistCommon.Constants.Results.Success)
+        public Report(List<Reports.Base> reports) : base(Result.Success)
         {
             this.Reports = reports;
         }

@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using DistCommon;
-    using Results = DistCommon.Constants.Results;
 
     public sealed class Controller : IController
     {
@@ -59,27 +58,27 @@
         #endregion
 
         #region Exposed
-        public Task<int> Add(DistCommon.Job.Blueprint job)
+        public Task<Result> Add(DistCommon.Job.Blueprint job)
         {
             return this.AddJob(new DistCtl.Job(job, -1, false));
         }
 
-        public Task<int> Add(DistCommon.Job.Blueprint job, int nodeID)
+        public Task<Result> Add(DistCommon.Job.Blueprint job, int nodeID)
         {
             return this.AddJob(new Job(job, nodeID, false));
         }
 
-        public Task<int> Add(DistCommon.Schema.Node schematic)
+        public Task<Result> Add(DistCommon.Schema.Node schematic)
         {
             return this.AddNode(schematic);
         }
 
-        public Task<int> Assign(int jobID)
+        public Task<Result> Assign(int jobID)
         {
             return this.AssignJobBalanced(jobID);
         }
 
-        public Task<int> Assign(int jobID, int nodeID)
+        public Task<Result> Assign(int jobID, int nodeID)
         {
             return this.AssignJobManual(jobID, nodeID);
         }
@@ -114,22 +113,22 @@
             return this.StartInit().Result;
         }
 
-        public Task<int> Remove(int nodeID)
+        public Task<Result> Remove(int nodeID)
         {
             return this.RemoveNode(nodeID);
         }
 
-        public Task<int> Remove(int jobID, int nodeID)
+        public Task<Result> Remove(int jobID, int nodeID)
         {
             return this.RemoveJob(jobID);
         }
 
-        public Task<int> Sleep(int jobID)
+        public Task<Result> Sleep(int jobID)
         {
             return this.SleepJob(jobID);
         }
 
-        public Task<int> Wake(int jobID)
+        public Task<Result> Wake(int jobID)
         {
             return this.WakeJob(jobID, false);
         }
@@ -202,22 +201,22 @@
         }
         #endregion
 
-        private async Task<int> AddJob(Job job)
+        private async Task<Result> AddJob(Job job)
         {
             return await this.AddJob(job, -1);
         }
 
-        private async Task<Tuple<int, int>> AddJob(int jobID, Job job)
+        private async Task<Tuple<int, Result>> AddJob(int jobID, Job job)
         {
-            return new Tuple<int, int>(jobID, await this.AddJob(job));
+            return new Tuple<int, Result>(jobID, await this.AddJob(job));
         }
 
-        private async Task<int> AddJob(Job job, int nodeID)
+        private async Task<Result> AddJob(Job job, int nodeID)
         {
             if (!this.jobs.ContainsKey(job.Blueprint.ID) && job.Blueprint.ID > 0)
             {
                 this.jobs.TryAdd(job.Blueprint.ID, job);
-                int res;
+                Result res;
                 if (nodeID == -1)
                 {
                     res = await this.AssignJobBalanced(job.Blueprint.ID);
@@ -227,7 +226,7 @@
                     res = await this.AssignJobManual(job.Blueprint.ID, nodeID);
                 }
 
-                if (res != Results.Success)
+                if (res != Result.Success)
                 {
                     this.jobs.TryRemove(job.Blueprint.ID, out job);
                 }
@@ -235,57 +234,57 @@
                 return res;
             }
 
-            return Results.Invalid;
+            return Result.Invalid;
         }
 
-        private async Task<int> AddNode(DistCommon.Schema.Node schematic)
+        private async Task<Result> AddNode(DistCommon.Schema.Node schematic)
         {
             if (!this.nodes.ContainsKey(schematic.ID) && schematic.ID > 0)
             {
                 var node = new Node(schematic, this.config.UpdateDelay, this.config.TimeoutDuration, this.LostNodeHandler, this.RecoveredNodeHandler, this.WorkerExitedHandler);
                 if (await node.Test())
                 {
-                    int constructionRes = await node.Construct();
-                    if ((constructionRes == Results.Invalid && await node.Reset() == Results.Success && await node.Construct() == Results.Success) || constructionRes == Results.Success)
+                    Result constructionRes = await node.Construct();
+                    if ((constructionRes == Result.Invalid && await node.Reset() == Result.Success && await node.Construct() == Result.Success) || constructionRes == Result.Success)
                     {
                         if (this.nodes.TryAdd(node.Schematic.ID, node))
                         {
                             this.nodes[node.Schematic.ID].StartReportTimer();
-                            return Results.Success;
+                            return Result.Success;
                         }
 
-                        return Results.Fail;
+                        return Result.Fail;
                     }
                 }
 
-                return Results.Unreachable;
+                return Result.Unreachable;
             }
 
-            return Results.Invalid;
+            return Result.Invalid;
         }
 
-        private async Task<Tuple<int, int>> AddNode(DistCommon.Schema.Node schematic, int id)
+        private async Task<Tuple<int, Result>> AddNode(DistCommon.Schema.Node schematic, int id)
         {
-            return new Tuple<int, int>(id, await this.AddNode(schematic));
+            return new Tuple<int, Result>(id, await this.AddNode(schematic));
         }
 
-        private async Task<int> AssignJobBalanced(int jobID, params int[] exempt)
+        private async Task<Result> AssignJobBalanced(int jobID, params int[] exempt)
         {
             var l = new List<int>();
             l.Add(jobID);
             var res = await this.AssignJobsBalanced(l, exempt);
-            return res.Count == 0 ? Results.Success : res[jobID];
+            return res.Count == 0 ? Result.Success : res[jobID];
         }
 
-        private async Task<int> AssignJobManual(int jobID, int nodeID)
+        private async Task<Result> AssignJobManual(int jobID, int nodeID)
         {
             if (this.nodes.ContainsKey(nodeID))
             {
                 if (this.nodes[nodeID].Reachable)
                 {
-                    int res = await this.nodes[nodeID].Assign(this.jobs[jobID]);
+                    Result res = await this.nodes[nodeID].Assign(this.jobs[jobID]);
                     
-                    if (res == Results.Success)
+                    if (res == Result.Success)
                     {
                         this.jobs[jobID].Transfer(nodeID);
                     }
@@ -293,10 +292,10 @@
                     return res;
                 }
 
-                return Results.Fail;
+                return Result.Fail;
             }
 
-            return Results.NotFound;
+            return Result.NotFound;
         }
 
         private async Task<bool> ExitController()
@@ -311,13 +310,13 @@
             return true;
         }
 
-        private async Task<int> RemoveJob(int jobID)
+        private async Task<Result> RemoveJob(int jobID)
         {
             if (this.jobs.ContainsKey(jobID))
             {
                 int nodeID = this.jobs[jobID].NodeID;
-                int res = await this.nodes[nodeID].Remove(jobID);
-                if (res == Results.Success)
+                Result res = await this.nodes[nodeID].Remove(jobID);
+                if (res == Result.Success)
                 {
                     Job job;
                     this.jobs.TryRemove(jobID, out job);
@@ -326,15 +325,15 @@
                 return res;
             }
 
-            return Results.NotFound;
+            return Result.NotFound;
         }
 
-        private async Task<int> RemoveNode(int nodeID)
+        private async Task<Result> RemoveNode(int nodeID)
         {
             if (this.nodes.ContainsKey(nodeID))
             {
-                int res = await this.nodes[nodeID].Reset();
-                if (res == Results.Success)
+                Result res = await this.nodes[nodeID].Reset();
+                if (res == Result.Success)
                 {
                     await this.AssignJobsBalanced(this.GetAssignedJobs(nodeID).Select(job => job.NodeID).ToList(), nodeID);
                     Node temp;
@@ -344,7 +343,7 @@
                 return res;
             }
 
-            return Results.NotFound;
+            return Result.NotFound;
         }
 
         private JobInfo GetJobInfo(int id)
@@ -377,15 +376,15 @@
             return this.nodes.ToDictionary(node => node.Key, node => node.Value.Info);
         }
 
-        private async Task<int> SleepJob(int jobID)
+        private async Task<Result> SleepJob(int jobID)
         {
             if (this.jobs.ContainsKey(jobID))
             {
                 int nodeID = this.jobs[jobID].NodeID;
                 if (this.jobs[jobID].Awake)
                 {
-                    int res = await this.nodes[nodeID].Sleep(jobID);
-                    if (res == Results.Success)
+                    Result res = await this.nodes[nodeID].Sleep(jobID);
+                    if (res == Result.Success)
                     {
                         this.jobs[jobID].Sleep();
                     }
@@ -393,21 +392,21 @@
                     return res;
                 }
 
-                return Results.Invalid;
+                return Result.Invalid;
             }
 
-            return Results.NotFound;
+            return Result.NotFound;
         }
 
-        private async Task<int> WakeJob(int jobID, bool isPreload = false)
+        private async Task<Result> WakeJob(int jobID, bool isPreload = false)
         {
             if (this.jobs.ContainsKey(jobID))
             {
                 int nodeID = this.jobs[jobID].NodeID;
                 if (!this.jobs[jobID].Awake || isPreload)
                 {
-                    int res = await this.nodes[nodeID].Wake(jobID);
-                    if (res == Results.Success)
+                    Result res = await this.nodes[nodeID].Wake(jobID);
+                    if (res == Result.Success)
                     {
                         this.jobs[jobID].Wake();
                     }
@@ -415,15 +414,15 @@
                     return res;
                 }
 
-                return Results.Invalid;
+                return Result.Invalid;
             }
 
-            return Results.NotFound;
+            return Result.NotFound;
         }
 
-        private async Task<Tuple<int, int>> WakeJob(bool tuple, int jobID)
+        private async Task<Tuple<int, Result>> WakeJob(bool tuple, int jobID)
         {
-            return new Tuple<int, int>(jobID, await this.WakeJob(jobID, true));
+            return new Tuple<int, Result>(jobID, await this.WakeJob(jobID, true));
         }
         #endregion
 
@@ -457,9 +456,9 @@
             return true;
         }
 
-        private void NodeMsg(Tuple<int, int> res)
+        private void NodeMsg(Tuple<int, Result> res)
         {
-            if (res.Item2 == Results.Success)
+            if (res.Item2 == Result.Success)
             {
                 this.logger.Log(string.Format("Node ID: {0} initialized successfully", res.Item1));
             }
@@ -469,9 +468,9 @@
             }
         }
 
-        private void JobAssignMsg(Tuple<int, int> res)
+        private void JobAssignMsg(Tuple<int, Result> res)
         {
-            if (res.Item2 == Results.Success)
+            if (res.Item2 == Result.Success)
             {
                 this.logger.Log(string.Format("Loaded job ID: {0}", res.Item1));
             }
@@ -481,9 +480,9 @@
             }
         }
 
-        private void JobWakeMsg(Tuple<int, int> res)
+        private void JobWakeMsg(Tuple<int, Result> res)
         {
-            if (res.Item2 == Results.Success)
+            if (res.Item2 == Result.Success)
             {
                 this.logger.Log(string.Format("Awoke job ID: {0}", res.Item1));
             }
@@ -494,9 +493,9 @@
         }
         #endregion
 
-        private async Task<Dictionary<int, int>> AssignJobsBalanced(List<int> jobIDs, params int[] exempt)
+        private async Task<Dictionary<int, Result>> AssignJobsBalanced(List<int> jobIDs, params int[] exempt)
         {
-            var res = new Dictionary<int, int>();
+            var res = new Dictionary<int, Result>();
             if ((this.config.EnableRejectTooManyAssignments && jobIDs.Count <= this.TotalSlotsAvailable) || !this.config.EnableRejectTooManyAssignments)
             {
                 var nodes = this.nodes.Where(node => node.Value.Reachable && !exempt.Contains(node.Key)).ToDictionary(node => node.Key, node => (float)this.GetAssignedJobs(node.Key).Count / node.Value.Schematic.Slots);
@@ -511,8 +510,8 @@
                         if (min.Value != 1)
                         {
                             int jobID = jobIDs[0];
-                            int assignRes = await this.AssignJobManual(jobID, min.Key);
-                            if (assignRes == Results.Success)
+                            Result assignRes = await this.AssignJobManual(jobID, min.Key);
+                            if (assignRes == Result.Success)
                             {
                                 nodes[min.Key] = (float)this.GetAssignedJobs(min.Key).Count / this.nodes[min.Key].Schematic.Slots;
                                 slotCount -= 1;
@@ -531,7 +530,7 @@
                 }
             }
 
-            return jobIDs.ToDictionary(job => job, job => Results.Fail);
+            return jobIDs.ToDictionary(job => job, job => Result.Fail);
         }
 
         private async Task<bool> AttemptRestart(int id)
@@ -539,9 +538,9 @@
             if (this.jobs.ContainsKey(id))
             {
                 this.jobs[id].AttemptRestart();
-                if (await this.nodes[this.jobs[id].NodeID].Remove(id) == Results.Success)
+                if (await this.nodes[this.jobs[id].NodeID].Remove(id) == Result.Success)
                 {
-                    if (await this.AssignJobBalanced(id, this.jobs[id].NodeID) == Results.Success)
+                    if (await this.AssignJobBalanced(id, this.jobs[id].NodeID) == Result.Success)
                     {
                         return true;
                     }
@@ -643,12 +642,12 @@
             }
         }
 
-        private async Task<int> ResetAll()
+        private async Task<Result> ResetAll()
         {
             this.ignoreAllEvents = true;
             var tasks = this.nodes.Where(node => node.Value.Reachable).Select(node => node.Value.Reset());
             await Task.WhenAll(tasks);
-            return Results.Success;
+            return Result.Success;
         }
 
         private async Task<Dictionary<int, int?>> Transfer(int nodeID)
@@ -659,7 +658,7 @@
                 var assignRes = await this.AssignJobsBalanced(this.GetAssignedJobs(nodeID).Select(job => job.Blueprint.ID).ToList());
                 foreach (var job in assignRes)
                 {
-                    res.Add(job.Key, job.Value == Results.Success ? (int?)this.jobs[job.Key].NodeID : null);
+                    res.Add(job.Key, job.Value == Result.Success ? (int?)this.jobs[job.Key].NodeID : null);
                 }
 
                 return res;

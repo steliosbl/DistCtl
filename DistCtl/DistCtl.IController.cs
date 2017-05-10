@@ -3,18 +3,19 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using DistCommon;
 
     public interface IController
     {
-        Task<int> Add(DistCommon.Job.Blueprint job);
+        Task<Result> Add(DistCommon.Job.Blueprint job);
 
-        Task<int> Add(DistCommon.Job.Blueprint job, int nodeID);
+        Task<Result> Add(DistCommon.Job.Blueprint job, int nodeID);
 
-        Task<int> Add(DistCommon.Schema.Node schematic);
+        Task<Result> Add(DistCommon.Schema.Node schematic);
 
-        Task<int> Assign(int jobID);
+        Task<Result> Assign(int jobID);
 
-        Task<int> Assign(int jobID, int nodeID);
+        Task<Result> Assign(int jobID, int nodeID);
 
         JobInfo GetJob(int jobID);
 
@@ -24,12 +25,12 @@
 
         Dictionary<int, NodeInfo> GetNode();
 
-        Task<int> Remove(int nodeID);
+        Task<Result> Remove(int nodeID);
 
-        Task<int> Remove(int jobID, int nodeID);
+        Task<Result> Remove(int jobID, int nodeID);
 
-        Task<int> Sleep(int jobID);
+        Task<Result> Sleep(int jobID);
 
-        Task<int> Wake(int jobID);
+        Task<Result> Wake(int jobID);
     }
 }

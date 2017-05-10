@@ -87,23 +87,23 @@
             }
         }
 
-        private int Assign(DistCommon.Job.Blueprint blueprint)
+        private Result Assign(DistCommon.Job.Blueprint blueprint)
         {
             if (this.constructed)
             {
                 if (this.schematic.Slots > this.workers.Count)
                 {
                     this.workers.Add(blueprint.ID, new Worker(blueprint, this.WorkerExitedHandler));
-                    return Constants.Results.Success;
+                    return Result.Success;
                 }
 
-                return Constants.Results.Fail;
+                return Result.Fail;
             }
 
-            return Constants.Results.NotConstructed;
+            return Result.NotConstructed;
         }
 
-        private int Remove(int id)
+        private Result Remove(int id)
         {
             if (this.constructed)
             {
@@ -115,16 +115,16 @@
                     }
 
                     this.workers.Remove(id);
-                    return Constants.Results.Success;
+                    return Result.Success;
                 }
 
-                return Constants.Results.NotFound;
+                return Result.NotFound;
             }
 
-            return Constants.Results.NotConstructed;
+            return Result.NotConstructed;
         }
 
-        private int Wake(int id)
+        private Result Wake(int id)
         {
             if (this.constructed)
             {
@@ -134,22 +134,22 @@
                     {
                         if (this.workers[id].Start().Result)
                         {
-                            return Constants.Results.Success;
+                            return Result.Success;
                         }
 
-                        return Constants.Results.Fail;
+                        return Result.Fail;
                     }
 
-                    return Constants.Results.Invalid;
+                    return Result.Invalid;
                 }
 
-                return Constants.Results.NotFound;
+                return Result.NotFound;
             }
 
-            return Constants.Results.NotConstructed;
+            return Result.NotConstructed;
         }
 
-        private int Sleep(int id)
+        private Result Sleep(int id)
         {
             if (this.constructed)
             {
@@ -159,34 +159,34 @@
                     {
                         if (this.workers[id].Stop().Result)
                         {
-                            return Constants.Results.Success;
+                            return Result.Success;
                         }
 
-                        return Constants.Results.Fail;
+                        return Result.Fail;
                     }
 
-                    return Constants.Results.Invalid;
+                    return Result.Invalid;
                 }
 
-                return Constants.Results.NotFound;
+                return Result.NotFound;
             }
 
-            return Constants.Results.NotConstructed;
+            return Result.NotConstructed;
         }
 
-        private int Construct(DistCommon.Schema.Node schematic)
+        private Result Construct(DistCommon.Schema.Node schematic)
         {
             if (!this.constructed)
             {
                 this.schematic = schematic;
                 this.constructed = true;
-                return Constants.Results.Success;
+                return Result.Success;
             }
 
-            return Constants.Results.Invalid;
+            return Result.Invalid;
         }
 
-        private int Reset()
+        private Result Reset()
         {
             if (this.constructed)
             {
@@ -199,10 +199,10 @@
                 this.schematic = null;
                 this.constructed = false;
 
-                return Constants.Results.Success;
+                return Result.Success;
             }
 
-            return Constants.Results.NotConstructed;
+            return Result.NotConstructed;
         }
 
         private void AddReport(Comm.Reports.Base report)
@@ -242,7 +242,7 @@
 
                 if (!supressLog)
                 {
-                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Messages[result.ResponseCode]));
+                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Messages[(int)result.Result]));
                 }
     
                 return JsonConvert.SerializeObject(result);
@@ -261,7 +261,7 @@
 
         private Comm.Responses.Base HandleRequest(Comm.Requests.Base request)
         {
-            return new Comm.Responses.Base(Constants.Results.Success);
+            return new Comm.Responses.Base(Result.Success);
         }
 
         private Comm.Responses.Base HandleRequest(Comm.Requests.Construct request)
@@ -286,7 +286,7 @@
 
         private Comm.Responses.Base HandleRequest(Comm.Requests.Test request)
         {
-            return new Comm.Responses.Base(Constants.Results.Success);
+            return new Comm.Responses.Base(Result.Success);
         }
 
         private Comm.Responses.Base HandleRequest(Comm.Requests.Wake request)

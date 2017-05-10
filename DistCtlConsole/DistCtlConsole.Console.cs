@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using DistCommon;
 
     public class Console
     {
@@ -137,7 +138,7 @@
 
             if (id != -1 && priority != -1 && !string.IsNullOrEmpty(cmd) && !string.IsNullOrWhiteSpace(cmd))
             {
-                int result = await this.controller.Add(new DistCommon.Job.Blueprint(id, priority, cmd), node);
+                Result result = await this.controller.Add(new DistCommon.Job.Blueprint(id, priority, cmd), node);
 
                 this.SayResult(result);
             }
@@ -196,7 +197,7 @@
 
             if (id != -1 && slots != -1 && address != null)
             {
-                int result = await this.controller.Add(new DistCommon.Schema.Node(id, slots, address, primary));
+                Result result = await this.controller.Add(new DistCommon.Schema.Node(id, slots, address, primary));
                 this.SayResult(result);
             }
             else
@@ -233,7 +234,7 @@
 
                 if (id != -1)
                 {
-                    int result;
+                    Result result;
                     if (subCmd == "job" || subCmd == "node")
                     {
                         if (subCmd == "job")
@@ -337,9 +338,9 @@
             this.controller.Exit();
         }
 
-        private void SayResult(int result)
+        private void SayResult(Result result)
         {
-            this.Say(string.Format("Command execution finished with result [{0}]", DistCommon.Constants.Results.Messages[result]));
+            this.Say(string.Format("Command execution finished with result [{0}]", DistCommon.Constants.Results.Messages[(int)result]));
         }
 
         private void SayInvalid()

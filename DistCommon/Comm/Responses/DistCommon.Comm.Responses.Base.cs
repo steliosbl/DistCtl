@@ -9,21 +9,21 @@
             this.ResponseType = this.GetType();
         }
 
-        public Base(int responseCode)
+        public Base(Result result)
         {
             this.ResponseType = this.GetType();
-            this.ResponseCode = responseCode;
+            this.Result = result;
         }
 
         [Newtonsoft.Json.JsonConstructor]
-        public Base(Type responseType, int responseCode)
+        public Base(Type responseType, Result result)
         {
             this.ResponseType = responseType;
-            this.ResponseCode = responseCode;
+            this.Result = result;
         }
 
         public Type ResponseType { get; private set; }
 
-        public int ResponseCode { get; private set; }
+        public Result Result { get; private set; }
     }
 }
