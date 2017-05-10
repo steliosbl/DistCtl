@@ -5,7 +5,7 @@
 
     internal sealed class Runtime
     {
-        private DistCtl.Config config;
+        private Config config;
         private Logger.SayHandler sayHandler;
         private DistCtlConsole.Console console;
         private DistCtl.Controller controller;
@@ -20,7 +20,7 @@
             {
                 try
                 {
-                    this.config = JFI.GetObject<DistCtl.Config>(configFilename);
+                    this.config = JFI.GetObject<Config>(configFilename);
                 }
                 catch (Newtonsoft.Json.JsonException)
                 {
@@ -44,7 +44,7 @@
                 this.sayHandler = Logger.StdSay;
             }
 
-            this.controller = new DistCtl.Controller(this.config, this.ExitHandler, this.sayHandler);
+            this.controller = new DistCtl.Controller(this.config.CtlConfig, this.ExitHandler, this.sayHandler);
             if (this.config.EnableLocalConsole)
             {
                 this.console.AddController(this.controller);
@@ -56,13 +56,21 @@
             try
             {
                 this.controller.Initialize();
-                if (!this.config.EnableLocalConsole)
+                if (!this.config.EnableLocalConsole && !this.config.EnableAPI)
                 {
                     System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
                 }
                 else
                 {
-                    this.console.Start();
+                    if (this.config.EnableLocalConsole)
+                    {
+                        this.console.Start();
+                    }
+
+                    if (this.config.EnableAPI)
+                    {
+                        DistCtlApi.API.Run(this.controller);
+                    }
                 }
             }
             catch (Exception e)
