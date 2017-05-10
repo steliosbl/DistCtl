@@ -56,22 +56,17 @@
             try
             {
                 this.controller.Initialize();
-                if (!this.config.EnableLocalConsole && !this.config.EnableAPI)
+                if (this.config.EnableLocalConsole)
                 {
-                    System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                    new System.Threading.Thread(() => this.console.Start()).Start();
                 }
-                else
-                {
-                    if (this.config.EnableLocalConsole)
-                    {
-                        this.console.Start();
-                    }
 
-                    if (this.config.EnableAPI)
-                    {
-                        DistCtlApi.API.Run(this.controller);
-                    }
+                if (this.config.EnableAPI)
+                {
+                    new System.Threading.Thread(() => DistCtlApi.API.Run(this.controller)).Start();
                 }
+
+                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
             }
             catch (Exception e)
             {
