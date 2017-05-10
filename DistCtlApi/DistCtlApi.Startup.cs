@@ -12,8 +12,11 @@
 
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        private DistCtl.IController ctl;
+
+        public Startup(IHostingEnvironment env, DistCtl.IController ctl)
         {
+            this.ctl = ctl;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -29,6 +32,7 @@
         {
             // Add framework services.
             services.AddMvc();
+            services.AddSingleton(this.ctl);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
