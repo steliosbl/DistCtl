@@ -138,7 +138,8 @@
 
             if (id != -1 && priority != -1 && !string.IsNullOrEmpty(cmd) && !string.IsNullOrWhiteSpace(cmd))
             {
-                Result result = await this.controller.Add(new DistCommon.Job.Blueprint(id, priority, cmd), node);
+                int? nullablenode = node == -1 ? null : (int?)node; 
+                Result result = await this.controller.Add(new DistCommon.Job.Blueprint(id, nullablenode, priority, cmd));
 
                 this.SayResult(result);
             }

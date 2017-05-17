@@ -63,11 +63,6 @@
             return this.AddJob(new DistCtl.Job(job, -1, false));
         }
 
-        public Task<Result> Add(DistCommon.Job.Blueprint job, int nodeID)
-        {
-            return this.AddJob(new Job(job, nodeID, false));
-        }
-
         public Task<Result> Add(DistCommon.Schema.Node schematic)
         {
             return this.AddNode(schematic);
@@ -130,7 +125,7 @@
 
         public Task<Result> Wake(int jobID)
         {
-            return this.WakeJob(jobID, false);
+            return this.WakeJob(jobID);
         }
         #endregion
 
@@ -203,7 +198,7 @@
 
         private async Task<Result> AddJob(Job job)
         {
-            return await this.AddJob(job, -1);
+            return await this.AddJob(job, null);
         }
 
         private async Task<Tuple<int, Result>> AddJob(int jobID, Job job)
@@ -211,19 +206,19 @@
             return new Tuple<int, Result>(jobID, await this.AddJob(job));
         }
 
-        private async Task<Result> AddJob(Job job, int nodeID)
+        private async Task<Result> AddJob(Job job, int? nodeID)
         {
             if (!this.jobs.ContainsKey(job.Blueprint.ID) && job.Blueprint.ID > 0)
             {
                 this.jobs.TryAdd(job.Blueprint.ID, job);
                 Result res;
-                if (nodeID == -1)
+                if (nodeID == null)
                 {
                     res = await this.AssignJobBalanced(job.Blueprint.ID);
                 }
                 else
                 {
-                    res = await this.AssignJobManual(job.Blueprint.ID, nodeID);
+                    res = await this.AssignJobManual(job.Blueprint.ID, (int)nodeID);
                 }
 
                 if (res != Result.Success)
@@ -398,12 +393,12 @@
             return Result.NotFound;
         }
 
-        private async Task<Result> WakeJob(int jobID, bool isPreload = false)
+        private async Task<Result> WakeJob(int jobID)
         {
             if (this.jobs.ContainsKey(jobID))
             {
                 int nodeID = this.jobs[jobID].NodeID;
-                if (!this.jobs[jobID].Awake || isPreload)
+                if (!this.jobs[jobID].Awake)
                 {
                     Result res = await this.nodes[nodeID].Wake(jobID);
                     if (res == Result.Success)
@@ -422,7 +417,7 @@
 
         private async Task<Tuple<int, Result>> WakeJob(bool tuple, int jobID)
         {
-            return new Tuple<int, Result>(jobID, await this.WakeJob(jobID, true));
+            return new Tuple<int, Result>(jobID, await this.WakeJob(jobID));
         }
         #endregion
 
@@ -430,10 +425,10 @@
         #region Init
         private async Task<bool> LoadJobs()
         {
-            var jobs = JFI.GetObject<List<Job>>(this.config.PreLoadFilename);
+            var jobs = JFI.GetObject<List<DistCommon.Job.Blueprint>>(this.config.PreLoadFilename);
             //// var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
             //// var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
-            var tasks = jobs.Select(job => this.LoadJob(job));
+            var tasks = jobs.Select(job => this.LoadJob(new Job(job, 0, false)));
             await Task.WhenAll(tasks);
             return true;
         }
@@ -448,7 +443,7 @@
         private async Task<bool> LoadJob(Job job)
         {
             await this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result));
-            if (job.Awake)
+            if (this.config.EnableWakePreloadJobs)
             {
                 await this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result));
             }

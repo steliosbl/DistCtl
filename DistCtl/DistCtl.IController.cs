@@ -9,8 +9,6 @@
     {
         Task<Result> Add(DistCommon.Job.Blueprint job);
 
-        Task<Result> Add(DistCommon.Job.Blueprint job, int nodeID);
-
         Task<Result> Add(DistCommon.Schema.Node schematic);
 
         Task<Result> Assign(int jobID);
