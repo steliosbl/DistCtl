@@ -64,6 +64,29 @@
             return BadRequest();
         }
 
+        [HttpPost("nodes/add")]
+        public IActionResult AddNode([FromBody] DistCommon.Schema.Node node)
+        {
+            if (node.ID != 0 && node.Slots != 0 && node.Address != null)
+            {
+                var res = this.controller.Add(node).Result;
+                if (res == Result.Success)
+                {
+                    return Ok();
+                }
+                else if (res == Result.Invalid)
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    return Forbid();
+                }
+            }
+
+            return BadRequest();
+        }
+
         [HttpGet("nodes")]
         public IActionResult GetAllNodes()
         {
