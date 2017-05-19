@@ -11,18 +11,6 @@
 
     public static class API
     {
-        ////public static void Main(string[] args)
-        ////{
-        ////    var host = new WebHostBuilder()
-        ////        .UseKestrel()
-        ////        .UseContentRoot(Directory.GetCurrentDirectory())
-        ////        .UseIISIntegration()
-        ////        .UseStartup<Startup>()
-        ////        .Build();
-
-        ////    host.Run();
-        ////}
-
         public static void Main()
         {
         }
@@ -33,7 +21,11 @@
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .ConfigureServices(services => services.AddSingleton<DistCtl.IController>(ctl))
+                .ConfigureServices(services => 
+                 {
+                    services.AddSingleton<DistCtl.IController>(ctl);
+                    services.AddSingleton<DistCommon.Logging.ILogger>(new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.API));
+                 })
                 .UseStartup<Startup>()
                 .Build();
 

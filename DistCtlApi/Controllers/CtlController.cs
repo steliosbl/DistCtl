@@ -12,13 +12,23 @@
     [Route("[controller]")]
     public sealed class CtlController : Microsoft.AspNetCore.Mvc.Controller
     {
+        #region Fields
         private DistCtl.IController controller;
+        private ILogger logger;
+        #endregion
 
-        public CtlController(DistCtl.IController controller)
+        #region Constructors
+        public CtlController(DistCtl.IController controller, ILogger logger)
         {
             this.controller = controller;
+            this.logger = logger;
         }
+        #endregion
 
+        #region Requests
+
+        #region GET
+        #region Jobs
         [HttpGet("jobs")]
         public IActionResult GetAllJobs()
         {
@@ -42,7 +52,37 @@
 
             return this.BadRequest();
         }
+        #endregion
 
+        #region Nodes
+        [HttpGet("nodes")]
+        public IActionResult GetAllNodes()
+        {
+            return new ObjectResult(JsonConvert.SerializeObject(this.controller.GetNode()));
+        }
+
+        [HttpGet("nodes")]
+        public IActionResult GetNodeById([RequiredFromQuery] string id)
+        {
+            int nodeID;
+            if (int.TryParse(id, out nodeID))
+            {
+                var info = this.controller.GetNode(nodeID);
+                if (info != null)
+                {
+                    return new ObjectResult(JsonConvert.SerializeObject(info));
+                }
+
+                return this.NotFound();
+            }
+
+            return this.BadRequest();
+        }
+        #endregion
+        #endregion
+
+        #region POST
+        #region Jobs
         [HttpPost("jobs/add")]
         public IActionResult AddJob([FromBody] DistCommon.Job.Blueprint blueprint)
         {
@@ -65,7 +105,9 @@
 
             return this.BadRequest();
         }
+        #endregion
 
+        #region Nodes
         [HttpPost("nodes/add")]
         public IActionResult AddNode([FromBody] DistCommon.Schema.Node node)
         {
@@ -88,30 +130,11 @@
 
             return this.BadRequest();
         }
+        #endregion
+        #endregion
 
-        [HttpDelete("nodes/remove")]
-        public IActionResult RemoveNode([FromBody] Models.IdObject idobj)
-        {
-            if (idobj.ID != null)
-            {
-                var res = this.controller.Remove((int)idobj.ID, Source.API).Result;
-                if (res == Result.Success)
-                {
-                    return this.Ok();
-                }
-                else if (res == Result.NotFound)
-                {
-                    return this.NotFound();
-                }
-                else
-                {
-                    return this.Forbid();
-                }
-            }
-
-            return this.BadRequest();
-        }
-
+        #region DELETE
+        #region Jobs
         [HttpDelete("jobs/remove")]
         public IActionResult RemoveJob([FromBody] Models.IdObject idobj)
         {
@@ -134,7 +157,36 @@
 
             return this.BadRequest();
         }
+        #endregion
 
+        #region Nodes
+        [HttpDelete("nodes/remove")]
+        public IActionResult RemoveNode([FromBody] Models.IdObject idobj)
+        {
+            if (idobj.ID != null)
+            {
+                var res = this.controller.Remove((int)idobj.ID, Source.API).Result;
+                if (res == Result.Success)
+                {
+                    return this.Ok();
+                }
+                else if (res == Result.NotFound)
+                {
+                    return this.NotFound();
+                }
+                else
+                {
+                    return this.Forbid();
+                }
+            }
+
+            return this.BadRequest();
+        }
+        #endregion
+        #endregion
+
+        #region PATCH
+        #region Jobs
         [HttpPatch("jobs/sleep")]
         public IActionResult SleepJob([FromBody] Models.IdObject idobj)
         {
@@ -180,34 +232,16 @@
 
             return this.BadRequest();
         }
+        #endregion
+        #endregion
 
-        [HttpGet("nodes")]
-        public IActionResult GetAllNodes()
-        {
-            return new ObjectResult(JsonConvert.SerializeObject(this.controller.GetNode()));
-        }
+        #endregion
 
-        [HttpGet("nodes")]
-        public IActionResult GetNodeById([RequiredFromQuery] string id)
-        {
-            int nodeID;
-            if (int.TryParse(id, out nodeID))
-            {
-                var info = this.controller.GetNode(nodeID);
-                if (info != null)
-                {
-                    return new ObjectResult(JsonConvert.SerializeObject(info));
-                }
-
-                return this.NotFound();
-            }
-
-            return this.BadRequest();
-        }
-
+        #region Status Codes
         private StatusCodeResult Conflict()
         {
             return this.StatusCode(409);
         }
+        #endregion
     }
 }
