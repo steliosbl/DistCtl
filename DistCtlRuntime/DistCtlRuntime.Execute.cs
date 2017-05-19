@@ -7,7 +7,7 @@
         [System.STAThread]
         public static void Main(string[] args)
         {
-            Newtonsoft.Json.JsonConvert.DefaultSettings = () => new DistCommon.Serialization.CustomSettings();
+            Newtonsoft.Json.JsonConvert.DefaultSettings = () => new DistCommon.Serialization.CustomSerializerSettings.SerializerSettings();
             Runtime runtime;
             if (args.Length == 0)
             {
