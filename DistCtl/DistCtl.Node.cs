@@ -3,8 +3,8 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using DistCommon;
+    using Newtonsoft.Json;
     using Comm = DistCommon.Comm;
 
     internal sealed class Node

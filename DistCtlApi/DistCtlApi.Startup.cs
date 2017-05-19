@@ -1,14 +1,13 @@
 ﻿namespace DistCtlApi
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using DistCommon.Serialization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Utils;
 
     internal sealed class Startup
     {
@@ -31,7 +30,7 @@
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddMvc();
+            services.AddMvc().AddJsonOptions(options => options.SerializerSettings.AddCustomSettings());
             services.AddSingleton(this.ctl);
         }
 
