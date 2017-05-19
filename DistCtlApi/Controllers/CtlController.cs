@@ -5,6 +5,7 @@
     using DistCommon.Job;
     using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
+    using Utils;
     using Result = DistCommon.Result;
 
     [Route("[controller]")]
@@ -35,10 +36,10 @@
                     return new ObjectResult(JsonConvert.SerializeObject(info));
                 }
 
-                return NotFound();
+                return this.NotFound();
             }
 
-            return BadRequest();
+            return this.BadRequest();
         }
 
         [HttpPost("jobs/add")]
@@ -49,19 +50,19 @@
                 var res = this.controller.Add(blueprint).Result;
                 if (res == Result.Success)
                 {
-                    return Ok();
+                    return this.Ok();
                 }
                 else if (res == Result.Invalid)
                 {
-                    return Conflict();
+                    return this.Conflict();
                 }
                 else
                 {
-                    return Forbid();
+                    return this.Forbid();
                 }
             }
 
-            return BadRequest();
+            return this.BadRequest();
         }
 
         [HttpPost("nodes/add")]
@@ -72,19 +73,19 @@
                 var res = this.controller.Add(node).Result;
                 if (res == Result.Success)
                 {
-                    return Ok();
+                    return this.Ok();
                 }
                 else if (res == Result.Invalid)
                 {
-                    return Conflict();
+                    return this.Conflict();
                 }
                 else
                 {
-                    return Forbid();
+                    return this.Forbid();
                 }
             }
 
-            return BadRequest();
+            return this.BadRequest();
         }
 
         [HttpGet("nodes")]
@@ -105,15 +106,15 @@
                     return new ObjectResult(JsonConvert.SerializeObject(info));
                 }
 
-                return NotFound();
+                return this.NotFound();
             }
 
-            return BadRequest();
+            return this.BadRequest();
         }
 
         private StatusCodeResult Conflict()
         {
-            return StatusCode(409);
+            return this.StatusCode(409);
         }
     }
 }
