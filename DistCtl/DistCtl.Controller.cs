@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using DistCommon;
+    using DistCommon.Logging;
 
     public sealed class Controller : IController
     {
@@ -14,17 +15,17 @@
         private ConcurrentDictionary<int, Job> jobs;
         private ConcurrentDictionary<int, Node> nodes;
         private DistCommon.Schema.Controller schematic;
-        private DistCommon.Logging.Logger logger;
+        private Logger logger;
         private bool ignoreAllEvents = false;
         #endregion
 
         #region Constructor
-        public Controller(Config config, ExitCommandHandler exitHandler, DistCommon.Logging.Logger.SayHandler sayHandler)
+        public Controller(Config config, ExitCommandHandler exitHandler, Logger.SayHandler sayHandler)
         {
             this.config = config;
             this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
             this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
-            this.logger = new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.Ctl.LoggerSrc, sayHandler);
+            this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, Source.Ctl, sayHandler);
             this.ExitCommand += exitHandler;
         }
         #endregion
@@ -58,22 +59,22 @@
         #endregion
 
         #region Exposed
-        public Task<Result> Add(DistCommon.Job.Blueprint job)
+        public Task<Result> Add(DistCommon.Job.Blueprint job, Source src)
         {
             return this.AddJob(new DistCtl.Job(job, -1, false));
         }
 
-        public Task<Result> Add(DistCommon.Schema.Node schematic)
+        public Task<Result> Add(DistCommon.Schema.Node schematic, Source src)
         {
             return this.AddNode(schematic);
         }
 
-        public Task<Result> Assign(int jobID)
+        public Task<Result> Assign(int jobID, Source src)
         {
             return this.AssignJobBalanced(jobID);
         }
 
-        public Task<Result> Assign(int jobID, int nodeID)
+        public Task<Result> Assign(int jobID, int nodeID, Source src)
         {
             return this.AssignJobManual(jobID, nodeID);
         }
@@ -108,22 +109,22 @@
             return this.StartInit().Result;
         }
 
-        public Task<Result> Remove(int nodeID)
+        public Task<Result> Remove(int nodeID, Source src)
         {
             return this.RemoveNode(nodeID);
         }
 
-        public Task<Result> Remove(int jobID, int nodeID)
+        public Task<Result> Remove(int jobID, int nodeID, Source src)
         {
             return this.RemoveJob(jobID);
         }
 
-        public Task<Result> Sleep(int jobID)
+        public Task<Result> Sleep(int jobID, Source src)
         {
             return this.SleepJob(jobID);
         }
 
-        public Task<Result> Wake(int jobID)
+        public Task<Result> Wake(int jobID, Source src)
         {
             return this.WakeJob(jobID);
         }
@@ -147,13 +148,13 @@
                 var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
                 if (missingFiles.Contains(this.config.SchematicFilename))
                 {
-                    this.logger.Log("Schematic file not found.", 3);
+                    this.logger.Log("Schematic file not found.", Severity.Critical);
                     Environment.Exit(2);
                 }
 
                 if (missingFiles.Contains(this.config.PreLoadFilename))
                 {
-                    this.logger.Log("Pre-load file not found.", 1);
+                    this.logger.Log("Pre-load file not found.", Severity.Warn);
                     preloadPossible = false;
                 }
             }
@@ -165,7 +166,7 @@
 
                 if (this.nodes.Count == 0)
                 {
-                    this.logger.Log("All nodes failed to initialize.", 3);
+                    this.logger.Log("All nodes failed to initialize.", Severity.Critical);
                     Environment.Exit(3);
                 }
             }
@@ -295,11 +296,11 @@
 
         private async Task<bool> ExitController()
         {
-            this.logger.Log("Exiting controller...", 1);
-            this.logger.Log("Resetting nodes...", 1);
+            this.logger.Log("Exiting controller...", Severity.Warn);
+            this.logger.Log("Resetting nodes...", Severity.Warn);
             await this.ResetAll();
             this.nodes.Clear();
-            this.logger.Log("Shutting down interfaces", 1);
+            this.logger.Log("Shutting down interfaces", Severity.Warn);
             this.ExitCommand();
             this.logger.Log("Done");
             return true;
@@ -459,7 +460,7 @@
             }
             else
             {
-                this.logger.Log(string.Format("Node ID: {0} failed to initialize", res.Item1), 1);
+                this.logger.Log(string.Format("Node ID: {0} failed to initialize", res.Item1), Severity.Warn);
             }
         }
 
@@ -471,7 +472,7 @@
             }
             else
             {
-                this.logger.Log(string.Format("Failed to load job ID: {0}", res.Item1), 1);
+                this.logger.Log(string.Format("Failed to load job ID: {0}", res.Item1), Severity.Warn);
             }
         }
 
@@ -483,7 +484,7 @@
             }
             else
             {
-                this.logger.Log(string.Format("Failed to wake job ID: {0}", res.Item1), 1);
+                this.logger.Log(string.Format("Failed to wake job ID: {0}", res.Item1), Severity.Warn);
             }
         }
         #endregion
@@ -598,7 +599,7 @@
             {
                 if (this.nodes.ContainsKey(id))
                 {
-                    this.logger.Log(string.Format("Lost node ID:{0}", id), 2);
+                    this.logger.Log(string.Format("Lost node ID:{0}", id), Severity.Severe);
                     if (this.config.EnableRedundancy)
                     {
                         this.logger.Log(string.Format("Beginning job transfer from node ID:{0}", id));
@@ -607,7 +608,7 @@
                         {
                             if (job.Value == null)
                             {
-                                this.logger.Log(string.Format("Failed to transfer job ID:{0}", job.Key), 1);
+                                this.logger.Log(string.Format("Failed to transfer job ID:{0}", job.Key), Severity.Warn);
                                 this.jobs[job.Key].Transfer(-1);
                             }
                             else
@@ -666,12 +667,12 @@
         {
             if (this.jobs.ContainsKey(id))
             {
-                this.logger.Log(string.Format("Worker ID:{0} exited unexpectedly", id), 1);
+                this.logger.Log(string.Format("Worker ID:{0} exited unexpectedly", id), Severity.Warn);
                 if (this.config.EnableAutoRestart)
                 {
                     if (this.jobs[id].RestartAttempted || !this.AttemptRestart(id).Result)
                     {
-                        this.logger.Log(string.Format("Restart of worker ID:{0} failed", id), 1);
+                        this.logger.Log(string.Format("Restart of worker ID:{0} failed", id), Severity.Warn);
                         this.DistributionChanged();
                     }
                     else

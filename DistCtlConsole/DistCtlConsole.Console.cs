@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using DistCommon;
+    using DistCommon.Logging;
 
     public class Console
     {
@@ -139,7 +140,7 @@
             if (id != -1 && priority != -1 && !string.IsNullOrEmpty(cmd) && !string.IsNullOrWhiteSpace(cmd))
             {
                 int? nullablenode = node == -1 ? null : (int?)node; 
-                Result result = await this.controller.Add(new DistCommon.Job.Blueprint(id, nullablenode, priority, cmd));
+                Result result = await this.controller.Add(new DistCommon.Job.Blueprint(id, nullablenode, priority, cmd), Source.Console);
 
                 this.SayResult(result);
             }
@@ -198,7 +199,7 @@
 
             if (id != -1 && slots != -1 && address != null)
             {
-                Result result = await this.controller.Add(new DistCommon.Schema.Node(id, slots, address, primary));
+                Result result = await this.controller.Add(new DistCommon.Schema.Node(id, slots, address, primary), Source.Console);
                 this.SayResult(result);
             }
             else
@@ -240,11 +241,11 @@
                     {
                         if (subCmd == "job")
                         {
-                            result = await this.controller.Remove(id, 0);
+                            result = await this.controller.Remove(id, 0, Source.Console);
                         }
                         else
                         {
-                            result = await this.controller.Remove(id);
+                            result = await this.controller.Remove(id, Source.Console);
                         }
 
                         this.SayResult(result);
@@ -284,7 +285,7 @@
 
             if (id != -1)
             {
-                var result = await this.controller.Sleep(id);
+                var result = await this.controller.Sleep(id, Source.Console);
                 this.SayResult(result);
             }
             else
@@ -320,7 +321,7 @@
 
             if (id != -1)
             {
-                var result = await this.controller.Wake(id);
+                var result = await this.controller.Wake(id, Source.Console);
                 this.SayResult(result);
             }
             else
@@ -341,7 +342,7 @@
 
         private void SayResult(Result result)
         {
-            this.Say(string.Format("Command execution finished with result [{0}]", DistCommon.Constants.Results.Messages[(int)result]));
+            this.Say(string.Format("Command execution finished with result [{0}]", result.GetString()));
         }
 
         private void SayInvalid()

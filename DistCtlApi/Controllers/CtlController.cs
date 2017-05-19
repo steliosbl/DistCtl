@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using DistCommon.Job;
+    using DistCommon.Logging;
     using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using Utils;
@@ -47,7 +48,7 @@
         {
             if (!string.IsNullOrEmpty(blueprint.Command) && blueprint.ID != 0 && blueprint.Priority != 0)
             {
-                var res = this.controller.Add(blueprint).Result;
+                var res = this.controller.Add(blueprint, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -70,7 +71,7 @@
         {
             if (node.ID != 0 && node.Slots != 0 && node.Address != null)
             {
-                var res = this.controller.Add(node).Result;
+                var res = this.controller.Add(node, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -93,7 +94,7 @@
         {
             if (idobj.ID != null)
             {
-                var res = this.controller.Remove((int)idobj.ID).Result;
+                var res = this.controller.Remove((int)idobj.ID, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -116,7 +117,7 @@
         {
             if (idobj.ID != null)
             {
-                var res = this.controller.Remove((int)idobj.ID, 0).Result;
+                var res = this.controller.Remove((int)idobj.ID, 0, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -139,7 +140,7 @@
         {
             if (idobj.ID != null)
             {
-                var res = this.controller.Sleep((int)idobj.ID).Result;
+                var res = this.controller.Sleep((int)idobj.ID, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -162,7 +163,7 @@
         {
             if (idobj.ID != null)
             {
-                var res = this.controller.Wake((int)idobj.ID).Result;
+                var res = this.controller.Wake((int)idobj.ID, Source.API).Result;
                 if (res == Result.Success)
                 {
                     return this.Ok();

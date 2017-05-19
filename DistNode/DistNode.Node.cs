@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using DistCommon;
+    using DistCommon.Logging;
     using Newtonsoft.Json;
     using Comm = DistCommon.Comm;
     using Constants = DistCommon.Constants;
@@ -36,7 +37,7 @@
                 throw new DistException("Configuration file invalid.");
             }
 
-            this.logger = new DistCommon.Logging.Logger(DistCommon.Constants.Node.LogFilename, DistCommon.Constants.Node.LoggerSrc);
+            this.logger = new DistCommon.Logging.Logger(DistCommon.Constants.Node.LogFilename, Source.Node);
             this.constructed = false;
             this.workers = new Dictionary<int, Worker>();
             this.reports = new List<DistCommon.Comm.Reports.Base>();
@@ -66,7 +67,7 @@
 
                     if (!this.config.EnableLiveErrors)
                     {
-                        this.logger.Log(e.StackTrace, 3);
+                        this.logger.Log(e.StackTrace, Severity.Critical);
                         Environment.Exit(1);
                     }
 
@@ -220,7 +221,7 @@
         private void WorkerExitedHandler(int id)
         {
             this.AddReport(new Comm.Reports.WorkerExited(id));
-            this.logger.Log(string.Format("Worker [{0}] exited unexpectedly", id.ToString()), 2);
+            this.logger.Log(string.Format("Worker [{0}] exited unexpectedly", id.ToString()), Severity.Severe);
         }
 
         private string ExecuteRequest(string requeststr)
@@ -242,14 +243,14 @@
 
                 if (!supressLog)
                 {
-                    this.logger.Log(string.Format("Operation finished with result [{0}]", Constants.Results.Messages[(int)result.Result]));
+                    this.logger.Log(string.Format("Operation finished with result [{0}]", result.Result.GetString()));
                 }
     
                 return JsonConvert.SerializeObject(result);
             }
             catch (JsonException)
             {
-                this.logger.Log("Received invalid request", 1);
+                this.logger.Log("Received invalid request", Severity.Warn);
                 return Constants.Comm.InvalidResponse;
             }
         }

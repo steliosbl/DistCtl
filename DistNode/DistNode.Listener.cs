@@ -18,7 +18,7 @@
             this.handleData = dataHandler;
         }
 
-        public delegate void LogHandler(string msg, int severity);
+        public delegate void LogHandler(string msg, DistCommon.Logging.Severity severity);
 
         public delegate string DataHandler(string data);
 
@@ -36,7 +36,7 @@
                 }
                 catch (SocketException e)
                 {
-                    this.log(e.Message, 2);
+                    this.log(e.Message, DistCommon.Logging.Severity.Severe);
                 }
             }
         }
