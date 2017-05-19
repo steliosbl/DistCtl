@@ -16,7 +16,7 @@
         private DistCommon.Schema.Node schematic;
         private Dictionary<int, Worker> workers;
         private bool constructed;
-        private Logger logger;
+        private DistCommon.Logging.Logger logger;
         private List<Comm.Reports.Base> reports;
 
         public Node(string configFilename = Constants.Node.ConfigFilename) 
@@ -36,7 +36,7 @@
                 throw new DistException("Configuration file invalid.");
             }
 
-            this.logger = new Logger(DistCommon.Constants.Node.LogFilename, DistCommon.Constants.Node.LoggerSrc);
+            this.logger = new DistCommon.Logging.Logger(DistCommon.Constants.Node.LogFilename, DistCommon.Constants.Node.LoggerSrc);
             this.constructed = false;
             this.workers = new Dictionary<int, Worker>();
             this.reports = new List<DistCommon.Comm.Reports.Base>();

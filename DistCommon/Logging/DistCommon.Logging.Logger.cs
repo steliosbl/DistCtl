@@ -1,4 +1,4 @@
-﻿namespace DistCommon
+﻿namespace DistCommon.Logging
 {
     using System;
     using System.IO;
@@ -7,13 +7,13 @@
     {
         private readonly string filename;
         private SayHandler say;
-        private string defaultSrc;
+        private Source defaultSrc;
 
-        public Logger(string filename, string src) : this(filename, src, StdSay)
+        public Logger(string filename, Source src) : this(filename, src, StdSay)
         {
         }
 
-        public Logger(string filename, string src, SayHandler sayHandler)
+        public Logger(string filename, Source src, SayHandler sayHandler)
         {
             this.defaultSrc = src;
             this.filename = filename;
@@ -35,24 +35,22 @@
             this.Log(msg, this.defaultSrc);
         }
 
-        public void Log(string msg, string src)
+        public void Log(string msg, Source src)
         {
             this.Log(msg, src, 0);
         }
 
-        public void Log(string msg, int severity)
+        public void Log(string msg, Severity severity)
         {
             this.Log(msg, this.defaultSrc, severity);
         }
 
-        public void Log(string msg, string src, int severity)
+        public void Log(string msg, Source src, Severity severity)
         {
-            var tags = new string[] { "[INFO]", "[WARN]", "[SEVERE]", "[CRITICAL]" };
-
-            string message = string.Format("[{0}] [{1}] {2} {3}", DateTime.Now.ToString(), src, tags[severity], msg);
+            string message = string.Format("[{0}] [{1}] [{2}] {3}", DateTime.Now.ToString(), src, severity.GetTag(), msg);
 
             this.Write(message + '\n');
-            this.say(message, Constants.Logger.Colors[severity]);
+            this.say(message, severity.GetColor());
         }
 
         private void Write(string message)

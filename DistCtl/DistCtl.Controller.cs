@@ -14,17 +14,17 @@
         private ConcurrentDictionary<int, Job> jobs;
         private ConcurrentDictionary<int, Node> nodes;
         private DistCommon.Schema.Controller schematic;
-        private Logger logger;
+        private DistCommon.Logging.Logger logger;
         private bool ignoreAllEvents = false;
         #endregion
 
         #region Constructor
-        public Controller(Config config, ExitCommandHandler exitHandler, Logger.SayHandler sayHandler)
+        public Controller(Config config, ExitCommandHandler exitHandler, DistCommon.Logging.Logger.SayHandler sayHandler)
         {
             this.config = config;
             this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
             this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
-            this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.Ctl.LoggerSrc, sayHandler);
+            this.logger = new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.Ctl.LoggerSrc, sayHandler);
             this.ExitCommand += exitHandler;
         }
         #endregion

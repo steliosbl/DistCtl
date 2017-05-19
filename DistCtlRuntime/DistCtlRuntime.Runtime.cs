@@ -6,14 +6,14 @@
     internal sealed class Runtime
     {
         private Config config;
-        private Logger.SayHandler sayHandler;
+        private DistCommon.Logging.Logger.SayHandler sayHandler;
         private DistCtlConsole.Console console;
         private DistCtl.Controller controller;
-        private Logger tempLogger;
+        private DistCommon.Logging.Logger tempLogger;
 
         public Runtime(string configFilename = DistCommon.Constants.Ctl.ConfigFilename)
         {
-            this.tempLogger = new Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.CtlRuntime.LoggerSrc);
+            this.tempLogger = new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.CtlRuntime.LoggerSrc);
 
             string[] dependencies = { configFilename };
             if (new DepMgr(dependencies).FindMissing().Count == 0)
@@ -41,7 +41,7 @@
             }
             else
             {
-                this.sayHandler = Logger.StdSay;
+                this.sayHandler = DistCommon.Logging.Logger.StdSay;
             }
 
             this.controller = new DistCtl.Controller(this.config.CtlConfig, this.ExitHandler, this.sayHandler);
