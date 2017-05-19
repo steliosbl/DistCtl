@@ -19,7 +19,7 @@
         private bool ignoreAllEvents = false;
         #endregion
 
-        #region Constructor
+        #region Constructors
         public Controller(Config config, ExitCommandHandler exitHandler, Logger.SayHandler sayHandler)
         {
             this.config = config;

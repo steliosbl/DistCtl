@@ -9,11 +9,14 @@
 
     public class Console
     {
+        #region Fields
         private readonly Dictionary<string, Action<string[]>> knownCommands;
         private DistCommon.LivePrompt prompt;
         private DistCtl.Controller controller;
         private DistCommon.TaskQueue queue;
+        #endregion
 
+        #region Constructors
         public Console()
         {
             this.prompt = new DistCommon.LivePrompt();
@@ -29,7 +32,9 @@
                 { "wake", this.Wake }
             };
         }
+        #endregion
 
+        #region Exposed
         public void Say(string msg, ConsoleColor foregroundColor = ConsoleColor.White)
         {
             this.prompt.Say(msg, foregroundColor);
@@ -49,7 +54,10 @@
         {
             this.controller = controller;
         }
+        #endregion
 
+        #region Internal
+        #region Handlers
         private void InputHandler(string command)
         {
             Task.Run(() => this.queue.Enqueue(() => this.HandleCommand(command)));
@@ -72,7 +80,9 @@
 
             return true;
         }
+        #endregion
 
+        #region Commands
         private async void Add(string[] args)
         {
             if (args.Length > 1)
@@ -339,7 +349,9 @@
         {
             this.controller.Exit();
         }
+        #endregion
 
+        #region Utils
         private void SayResult(Result result)
         {
             this.Say(string.Format("Command execution finished with result [{0}]", result.GetString()));
@@ -349,5 +361,7 @@
         {
             this.Say("Invalid command");
         }
+        #endregion
+        #endregion
     }
 }

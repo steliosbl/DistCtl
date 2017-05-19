@@ -5,10 +5,13 @@
 
     public class Logger : ILogger
     {
+        #region Fields
         private readonly string filename;
         private SayHandler say;
         private Source defaultSrc;
+        #endregion
 
+        #region Constructors
         public Logger(string filename, Source src) : this(filename, src, StdSay)
         {
         }
@@ -20,16 +23,22 @@
             this.Write('\n' + "----------------------------------" + '\n');
             this.say = sayHandler;
         }
+        #endregion
 
+        #region Delegates
         public delegate void SayHandler(string msg,  ConsoleColor foregroundColor);
+        #endregion
 
+        #region Static
         public static void StdSay(string msg, ConsoleColor foregroundColor)
         {
             Console.ForegroundColor = foregroundColor;
             Console.WriteLine(msg);
             Console.ResetColor();
         }
+        #endregion
 
+        #region Exposed
         public void Log(string msg)
         {
             this.Log(msg, this.defaultSrc);
@@ -52,7 +61,9 @@
             this.Write(message + '\n');
             this.say(message, severity.GetColor());
         }
+        #endregion
 
+        #region Internal
         private void Write(string message)
         {
             try
@@ -63,5 +74,6 @@
             {
             }
         }
+        #endregion
     }
 }
