@@ -88,6 +88,98 @@
             return this.BadRequest();
         }
 
+        [HttpDelete("nodes/remove")]
+        public IActionResult RemoveNode([FromBody] Models.IdObject idobj)
+        {
+            if (idobj.ID != null)
+            {
+                var res = this.controller.Remove((int)idobj.ID).Result;
+                if (res == Result.Success)
+                {
+                    return this.Ok();
+                }
+                else if (res == Result.NotFound)
+                {
+                    return this.NotFound();
+                }
+                else
+                {
+                    return this.Forbid();
+                }
+            }
+
+            return this.BadRequest();
+        }
+
+        [HttpDelete("jobs/remove")]
+        public IActionResult RemoveJob([FromBody] Models.IdObject idobj)
+        {
+            if (idobj.ID != null)
+            {
+                var res = this.controller.Remove((int)idobj.ID, 0).Result;
+                if (res == Result.Success)
+                {
+                    return this.Ok();
+                }
+                else if (res == Result.NotFound)
+                {
+                    return this.NotFound();
+                }
+                else
+                {
+                    return this.Forbid();
+                }
+            }
+
+            return this.BadRequest();
+        }
+
+        [HttpPatch("jobs/sleep")]
+        public IActionResult SleepJob([FromBody] Models.IdObject idobj)
+        {
+            if (idobj.ID != null)
+            {
+                var res = this.controller.Sleep((int)idobj.ID).Result;
+                if (res == Result.Success)
+                {
+                    return this.Ok();
+                }
+                else if (res == Result.NotFound)
+                {
+                    return this.NotFound();
+                }
+                else
+                {
+                    return this.Forbid();
+                }
+            }
+
+            return this.BadRequest();
+        }
+
+        [HttpPatch("jobs/wake")]
+        public IActionResult WakeJob([FromBody] Models.IdObject idobj)
+        {
+            if (idobj.ID != null)
+            {
+                var res = this.controller.Wake((int)idobj.ID).Result;
+                if (res == Result.Success)
+                {
+                    return this.Ok();
+                }
+                else if (res == Result.NotFound)
+                {
+                    return this.NotFound();
+                }
+                else
+                {
+                    return this.Forbid();
+                }
+            }
+
+            return this.BadRequest();
+        }
+
         [HttpGet("nodes")]
         public IActionResult GetAllNodes()
         {
