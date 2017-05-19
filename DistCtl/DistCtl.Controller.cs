@@ -24,7 +24,7 @@
             this.config = config;
             this.jobs = new ConcurrentDictionary<int, DistCtl.Job>();
             this.nodes = new ConcurrentDictionary<int, DistCtl.Node>();
-            this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, sayHandler);
+            this.logger = new Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.Ctl.LoggerSrc, sayHandler);
             this.ExitCommand += exitHandler;
         }
         #endregion

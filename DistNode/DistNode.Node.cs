@@ -36,7 +36,7 @@
                 throw new DistException("Configuration file invalid.");
             }
 
-            this.logger = new Logger(DistCommon.Constants.Node.LogFilename);
+            this.logger = new Logger(DistCommon.Constants.Node.LogFilename, DistCommon.Constants.Node.LoggerSrc);
             this.constructed = false;
             this.workers = new Dictionary<int, Worker>();
             this.reports = new List<DistCommon.Comm.Reports.Base>();

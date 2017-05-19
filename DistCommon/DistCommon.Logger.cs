@@ -7,13 +7,15 @@
     {
         private readonly string filename;
         private SayHandler say;
+        private string defaultSrc;
 
-        public Logger(string filename) : this(filename, StdSay)
+        public Logger(string filename, string src) : this(filename, src, StdSay)
         {
         }
 
-        public Logger(string filename, SayHandler sayHandler)
+        public Logger(string filename, string src, SayHandler sayHandler)
         {
+            this.defaultSrc = src;
             this.filename = filename;
             this.Write('\n' + "----------------------------------" + '\n');
             this.say = sayHandler;
@@ -28,11 +30,26 @@
             Console.ResetColor();
         }
 
-        public void Log(string msg, int severity = 0)
+        public void Log(string msg)
+        {
+            this.Log(msg, this.defaultSrc);
+        }
+
+        public void Log(string msg, string src)
+        {
+            this.Log(msg, src, 0);
+        }
+
+        public void Log(string msg, int severity)
+        {
+            this.Log(msg, this.defaultSrc, severity);
+        }
+
+        public void Log(string msg, string src, int severity)
         {
             var tags = new string[] { "[INFO]", "[WARN]", "[SEVERE]", "[CRITICAL]" };
 
-            string message = "[" + DateTime.Now.ToString() + "] " + tags[severity] + " " + msg;
+            string message = string.Format("[{0}] [{1}] {2} {3}", DateTime.Now.ToString(), src, tags[severity], msg);
 
             this.Write(message + '\n');
             this.say(message, Constants.Logger.Colors[severity]);

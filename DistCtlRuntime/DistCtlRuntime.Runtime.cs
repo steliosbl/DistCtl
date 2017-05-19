@@ -13,7 +13,7 @@
 
         public Runtime(string configFilename = DistCommon.Constants.Ctl.ConfigFilename)
         {
-            this.tempLogger = new Logger(DistCommon.Constants.Ctl.LogFilename);
+            this.tempLogger = new Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Constants.CtlRuntime.LoggerSrc);
 
             string[] dependencies = { configFilename };
             if (new DepMgr(dependencies).FindMissing().Count == 0)

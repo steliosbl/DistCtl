@@ -22,6 +22,7 @@
         {
             public const string ConfigFilename = "DistNode.cfg";
             public const string LogFilename = "DistNode.log";
+            public const string LoggerSrc = "Node";
 
             public static class Worker
             {
@@ -36,6 +37,12 @@
             public const int RequestAttempts = 3;
             public const string ConfigFilename = "DistCtl.cfg";
             public const string LogFilename = "DistCtl.log";
+            public const string LoggerSrc = "Ctl";
+        }
+
+        public static class CtlRuntime
+        {
+            public const string LoggerSrc = "Bootstrap";
         }
     }
 }
