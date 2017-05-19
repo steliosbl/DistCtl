@@ -1,4 +1,4 @@
-﻿namespace DistCtlApi
+﻿namespace DistCtlApi.Utils
 {
     using System;
     using Microsoft.AspNetCore.Mvc.ActionConstraints;
