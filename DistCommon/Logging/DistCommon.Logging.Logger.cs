@@ -3,7 +3,7 @@
     using System;
     using System.IO;
 
-    public class Logger
+    public class Logger : ILogger
     {
         private readonly string filename;
         private SayHandler say;
