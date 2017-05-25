@@ -15,21 +15,25 @@
         {
         }
 
-        public static void Run(DistCtl.Controller ctl)
+        public static void Run(Config cfg, DistCtl.Controller ctl)
         {
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .ConfigureServices(services => 
+                .ConfigureServices(services =>
                  {
-                    services.AddSingleton<DistCtl.IController>(ctl);
-                    services.AddSingleton<DistCommon.Logging.ILogger>(new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.API));
+                     services.AddSingleton<DistCtl.IController>(ctl);
+                     services.AddSingleton<DistCommon.Logging.ILogger>(new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.API));
                  })
                 .UseStartup<Startup>()
+                .UseUrls(string.Format("http://*:{0}", cfg.Port.ToString()))
                 .Build();
 
-            host.Run();
+            if (cfg.Enable)
+            {
+                host.Run();
+            }
         }
     }
 }

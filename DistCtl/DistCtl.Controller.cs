@@ -191,7 +191,7 @@
                 }
             }
 
-            this.logger.Log("Startup completed");
+            this.logger.Log("Controller ready");
 
             return true;
         }

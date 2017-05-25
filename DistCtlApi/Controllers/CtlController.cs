@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using DistCommon;
     using DistCommon.Job;
     using DistCommon.Logging;
     using Microsoft.AspNetCore.Mvc;
@@ -88,7 +89,10 @@
         {
             if (!string.IsNullOrEmpty(blueprint.Command) && blueprint.ID != 0 && blueprint.Priority != 0)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Add Job ID:{0}]", blueprint.ID.ToString()), rid);
                 var res = this.controller.Add(blueprint, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -103,6 +107,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
         #endregion
@@ -113,7 +118,10 @@
         {
             if (node.ID != 0 && node.Slots != 0 && node.Address != null)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Add Node ID:{0}]", node.ID.ToString()), rid);
                 var res = this.controller.Add(node, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -128,6 +136,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
         #endregion
@@ -140,7 +149,10 @@
         {
             if (idobj.ID != null)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Remove Job ID:{0}]", idobj.ID.ToString()), rid);
                 var res = this.controller.Remove((int)idobj.ID, 0, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -155,6 +167,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
         #endregion
@@ -165,7 +178,10 @@
         {
             if (idobj.ID != null)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Remove Job ID:{0}]", idobj.ID.ToString()), rid);
                 var res = this.controller.Remove((int)idobj.ID, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -180,6 +196,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
         #endregion
@@ -192,7 +209,10 @@
         {
             if (idobj.ID != null)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Sleep Job ID:{0}]", idobj.ID.ToString()), rid);
                 var res = this.controller.Sleep((int)idobj.ID, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -207,6 +227,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
 
@@ -215,7 +236,10 @@
         {
             if (idobj.ID != null)
             {
+                int rid = this.logger.AddID();
+                this.logger.Log(string.Format("Received request [Wake Job ID:{0}]", idobj.ID.ToString()), rid);
                 var res = this.controller.Wake((int)idobj.ID, Source.API).Result;
+                this.LogResult(rid, res);
                 if (res == Result.Success)
                 {
                     return this.Ok();
@@ -230,6 +254,7 @@
                 }
             }
 
+            this.LogBadRequest();
             return this.BadRequest();
         }
         #endregion
@@ -241,6 +266,18 @@
         private StatusCodeResult Conflict()
         {
             return this.StatusCode(409);
+        }
+        #endregion
+
+        #region Utils
+        private void LogResult(int id, Result result)
+        {
+            this.logger.Log(string.Format("Command execution finished with result [{0}]", result.GetString()), id);
+        }
+
+        private void LogBadRequest()
+        {
+            this.logger.Log("Received bad request", Severity.Warn);
         }
         #endregion
     }

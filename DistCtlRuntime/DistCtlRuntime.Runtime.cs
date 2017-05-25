@@ -61,9 +61,9 @@
                     new System.Threading.Thread(() => this.console.Start()).Start();
                 }
 
-                if (this.config.EnableAPI)
+                if (this.config.APIConfig.Enable)
                 {
-                    new System.Threading.Thread(() => DistCtlApi.API.Run(this.controller)).Start();
+                    new System.Threading.Thread(() => DistCtlApi.API.Run(this.config.APIConfig, this.controller)).Start();
                 }
 
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
