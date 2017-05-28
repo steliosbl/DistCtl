@@ -30,7 +30,7 @@
 
         public static class Logger
         {
-            public static string[] BannedStrings = { "Application started. Press Ctrl+C to shut down." };
+            public static readonly string[] BannedStrings = { "Application started. Press Ctrl+C to shut down." };
         }
     }
 }

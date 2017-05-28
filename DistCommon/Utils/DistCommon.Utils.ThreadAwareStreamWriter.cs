@@ -17,6 +17,20 @@
             this.defaultWriter = Console.Out;
         }
 
+        public override Encoding Encoding
+        {
+            get
+            {
+                TextWriter threadWriter;
+                if (this.threadWriterMap.TryGetValue(Thread.CurrentThread.ManagedThreadId, out threadWriter))
+                {
+                    return threadWriter.Encoding;
+                }
+
+                return this.defaultWriter.Encoding;
+            }
+        }
+
         public override void Write(char value)
         {
             TextWriter threadWriter;
@@ -49,20 +63,6 @@
             if (this.threadWriterMap.TryRemove(Thread.CurrentThread.ManagedThreadId, out threadWriter))
             {
                 threadWriter.Dispose();
-            }
-        }
-
-        public override Encoding Encoding
-        {
-            get
-            {
-                TextWriter threadWriter;
-                if (this.threadWriterMap.TryGetValue(Thread.CurrentThread.ManagedThreadId, out threadWriter))
-                {
-                    return threadWriter.Encoding;
-                }
-
-                return this.defaultWriter.Encoding;
             }
         }
 

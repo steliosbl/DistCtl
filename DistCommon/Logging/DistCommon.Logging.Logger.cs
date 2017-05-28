@@ -127,9 +127,6 @@
 
         private void Write(string message)
         {
-            //var stdout = new StreamWriter(Console.OpenStandardOutput());
-            //stdout.AutoFlush = true;
-            //Console.SetOut(stdout);
             try
             {
                 File.AppendAllText(this.filename, message);

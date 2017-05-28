@@ -167,7 +167,7 @@
                 if (this.nodes.Count == 0)
                 {
                     this.logger.Log("All nodes failed to initialize.", Severity.Critical);
-                    //Environment.Exit(3);
+                    Environment.Exit(3);
                 }
             }
 
