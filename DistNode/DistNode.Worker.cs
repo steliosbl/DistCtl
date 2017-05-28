@@ -25,13 +25,19 @@
 
         public async Task<bool> Start()
         {
-            if (!this.Awake)
+            try
             {
-                this.supressExitEvent = true;
-                this.StartWork();
-                await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
-                this.supressExitEvent = false;
-                return this.Awake;
+                if (!this.Awake)
+                {
+                    this.supressExitEvent = true;
+                    this.StartWork();
+                    await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
+                    this.supressExitEvent = false;
+                    return this.Awake;
+                }
+            }
+            catch (InvalidOperationException)
+            {
             }
 
             return false;
@@ -39,13 +45,19 @@
 
         public async Task<bool> Stop()
         {
-            if (this.Awake)
+            try
             {
-                this.supressExitEvent = true;
-                this.StopWork();
-                await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
-                this.supressExitEvent = false;
-                return !this.Awake;
+                if (this.Awake)
+                {
+                    this.supressExitEvent = true;
+                    this.StopWork();
+                    await Task.Delay(DistCommon.Constants.Node.Worker.CheckDelay);
+                    this.supressExitEvent = false;
+                    return !this.Awake;
+                }
+            }
+            catch (InvalidOperationException)
+            {
             }
 
             return false;

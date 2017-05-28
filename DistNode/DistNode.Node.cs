@@ -23,14 +23,14 @@
         public Node(string configFilename = Constants.Node.ConfigFilename) 
         {
             string[] dependencies = { configFilename };
-            if (new DepMgr(dependencies).FindMissing().Count != 0)
+            if (new DistCommon.Utils.DepMgr(dependencies).FindMissing().Count != 0)
             {
                 throw new DistException("Configuration file not found.");
             }
 
             try
             {
-                this.config = JFI.GetObject<Config>(configFilename);
+                this.config = DistCommon.Utils.JFI.GetObject<Config>(configFilename);
             }
             catch (Newtonsoft.Json.JsonException)
             {

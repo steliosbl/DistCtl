@@ -1,4 +1,4 @@
-﻿namespace DistCommon
+﻿namespace DistCommon.Utils
 {
     using System;
     using System.IO;

@@ -13,7 +13,7 @@
         private readonly Dictionary<string, Action<string[]>> knownCommands;
         private DistCommon.LivePrompt prompt;
         private DistCtl.Controller controller;
-        private DistCommon.TaskQueue queue;
+        private DistCommon.Utils.TaskQueue queue;
         #endregion
 
         #region Constructors
@@ -21,7 +21,7 @@
         {
             this.prompt = new DistCommon.LivePrompt();
             this.prompt.AddInputHandler(this.InputHandler);
-            this.queue = new DistCommon.TaskQueue();
+            this.queue = new DistCommon.Utils.TaskQueue();
             this.knownCommands = new Dictionary<string, Action<string[]>>()
             {
                 { "help", this.Help },

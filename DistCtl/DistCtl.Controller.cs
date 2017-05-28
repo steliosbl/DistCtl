@@ -145,7 +145,7 @@
                     dependencies.Add(this.config.PreLoadFilename);
                 }
 
-                var missingFiles = new DepMgr(dependencies.ToArray()).FindMissing();
+                var missingFiles = new DistCommon.Utils.DepMgr(dependencies.ToArray()).FindMissing();
                 if (missingFiles.Contains(this.config.SchematicFilename))
                 {
                     this.logger.Log("Schematic file not found.", Severity.Critical);
@@ -161,7 +161,7 @@
 
             this.logger.Log("Loading schematic...");
             {
-                this.schematic = JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
+                this.schematic = DistCommon.Utils.JFI.GetObject<DistCommon.Schema.Controller>(this.config.SchematicFilename);
                 await this.LoadNodes();
 
                 if (this.nodes.Count == 0)
@@ -426,7 +426,7 @@
         #region Init
         private async Task<bool> LoadJobs()
         {
-            var jobs = JFI.GetObject<List<DistCommon.Job.Blueprint>>(this.config.PreLoadFilename);
+            var jobs = DistCommon.Utils.JFI.GetObject<List<DistCommon.Job.Blueprint>>(this.config.PreLoadFilename);
             //// var assignTasks = jobs.Select(job => this.AddJob(job.Blueprint.ID, job).ContinueWith((t) => this.JobAssignMsg(t.Result)));
             //// var wakeTasks = jobs.Where(job => job.Awake).Select(job => this.WakeJob(true, job.Blueprint.ID).ContinueWith((t) => this.JobWakeMsg(t.Result)));
             var tasks = jobs.Select(job => this.LoadJob(new Job(job, 0, false)));
