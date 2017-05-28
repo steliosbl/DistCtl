@@ -10,10 +10,13 @@
         private DistCtlConsole.Console console;
         private DistCtl.Controller controller;
         private DistCommon.Logging.Logger tempLogger;
+        private DistCommon.Utils.ThreadAwareStreamWriter threadWriter;
 
         public Runtime(string configFilename = DistCommon.Constants.Ctl.ConfigFilename)
         {
             this.tempLogger = new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.Runtime);
+            this.threadWriter = new DistCommon.Utils.ThreadAwareStreamWriter();
+            Console.SetOut(this.threadWriter);
 
             string[] dependencies = { configFilename };
             if (new DistCommon.Utils.DepMgr(dependencies).FindMissing().Count == 0)
@@ -58,12 +61,12 @@
                 this.controller.Initialize();
                 if (this.config.EnableLocalConsole)
                 {
-                    new System.Threading.Thread(() => this.console.Start()).Start();
+                    this.console.Start();
                 }
 
                 if (this.config.APIConfig.Enable)
                 {
-                    new System.Threading.Thread(() => DistCtlApi.API.Run(this.config.APIConfig, this.controller)).Start();
+                    DistCtlApi.API.Run(this.config.APIConfig, this.controller, this.threadWriter, this.sayHandler);
                 }
 
                 System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);

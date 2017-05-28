@@ -15,8 +15,10 @@
         {
         }
 
-        public static void Run(Config cfg, DistCtl.Controller ctl)
+        public static void Run(Config cfg, DistCtl.Controller ctl, DistCommon.Utils.ThreadAwareStreamWriter writer, DistCommon.Logging.Logger.SayHandler sayHandler)
         {
+            var logger = new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.API, sayHandler);
+
             var host = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
@@ -24,7 +26,7 @@
                 .ConfigureServices(services =>
                  {
                      services.AddSingleton<DistCtl.IController>(ctl);
-                     services.AddSingleton<DistCommon.Logging.ILogger>(new DistCommon.Logging.Logger(DistCommon.Constants.Ctl.LogFilename, DistCommon.Logging.Source.API));
+                     services.AddSingleton<DistCommon.Logging.ILogger>(logger);
                  })
                 .UseStartup<Startup>()
                 .UseUrls(string.Format("http://*:{0}", cfg.Port.ToString()))
@@ -32,7 +34,12 @@
 
             if (cfg.Enable)
             {
-                host.Run();
+                new System.Threading.Thread(o =>
+                {
+                    DistCommon.Utils.ThreadAwareStreamWriter threadWriter = (DistCommon.Utils.ThreadAwareStreamWriter)o;
+                    threadWriter.RegisterThreadWriter(new DistCommon.Logging.LogWriter(logger));
+                    host.Run();
+                }).Start(writer);
             }
         }
     }

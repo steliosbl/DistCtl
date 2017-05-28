@@ -42,7 +42,7 @@
 
         public void Start()
         {
-            this.prompt.MainLoop();
+            new System.Threading.Thread(() => this.prompt.MainLoop()).Start();
         }
 
         public void Stop()
